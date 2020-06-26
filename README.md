@@ -1,6 +1,38 @@
-# `pylint-ignore`
+# [`pylint-ignore`][repo_ref]
 
 Reduce Pylint noise by ignoring messages, case by case.
+
+Project/Repo:
+
+[![MIT License][license_img]][license_ref]
+[![Supported Python Versions][pyversions_img]][pyversions_ref]
+[![PyCalVer v202006.0001-alpha][version_img]][version_ref]
+[![PyPI Version][pypi_img]][pypi_ref]
+[![PyPI Downloads][downloads_img]][downloads_ref]
+
+Code Quality/CI:
+
+[![Build Status][build_img]][build_ref]
+[![Type Checked with mypy][mypy_img]][mypy_ref]
+[![Code Coverage][codecov_img]][codecov_ref]
+[![Code Style: sjfmt][style_img]][style_ref]
+
+
+|                 Name                |        role       |  since  | until |
+|-------------------------------------|-------------------|---------|-------|
+| Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2020-06 | -     |
+
+
+<!--
+  To update the TOC:
+  $ pip install md-toc
+  $ md_toc --in-place README.md gitlab
+-->
+
+
+[](TOC)
+
+[](TOC)
 
 
 ## OK/FAIL Workflow
@@ -118,3 +150,32 @@ The [`pylint-patcher`](https://pypi.org/project/pylint-patcher/) is an alternate
 The `pylint-ignore` project does not modify your files, but instead it invokes pylint as a subprocess and does postprocessing on the output it generates, ignoring any messages, on a case-by-case basis, that you previously marked to be ignored and which are stored in the `pylint-ignore.cfg` file.
 
 
+
+[repo_ref]: https://gitlab.com/mbarkhau/pylint-ignore
+
+[build_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/pipeline.svg
+[build_ref]: https://gitlab.com/mbarkhau/pylint-ignore/pipelines
+
+[codecov_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/coverage.svg
+[codecov_ref]: https://mbarkhau.gitlab.io/pylint-ignore/cov
+
+[license_img]: https://img.shields.io/badge/License-MIT-blue.svg
+[license_ref]: https://gitlab.com/mbarkhau/pylint-ignore/blob/master/LICENSE
+
+[mypy_img]: https://img.shields.io/badge/mypy-checked-green.svg
+[mypy_ref]: https://mbarkhau.gitlab.io/pylint-ignore/mypycov
+
+[style_img]: https://img.shields.io/badge/code%20style-%20sjfmt-f71.svg
+[style_ref]: https://gitlab.com/mbarkhau/straitjacket/
+
+[pypi_img]: https://img.shields.io/badge/PyPI-wheels-green.svg
+[pypi_ref]: https://pypi.org/project/pylint-ignore/#files
+
+[downloads_img]: https://pepy.tech/badge/pylint-ignore/month
+[downloads_ref]: https://pepy.tech/project/pylint-ignore
+
+[version_img]: https://img.shields.io/static/v1.svg?label=PyCalVer&message=v202006.0001-alpha&color=blue
+[version_ref]: https://pypi.org/project/pycalver/
+
+[pyversions_img]: https://img.shields.io/pypi/pyversions/pylint-ignore.svg
+[pyversions_ref]: https://pypi.python.org/pypi/pylint-ignore

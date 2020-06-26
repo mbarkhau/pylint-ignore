@@ -16,7 +16,7 @@ AUTHOR_NAME="Manuel Barkhau"
 AUTHOR_EMAIL="mbarkhau@gmail.com"
 
 KEYWORDS="pylint ignore noise flake8 pep8 linter"
-DESCRIPTION="Reduce ."
+DESCRIPTION="Reduce Pylint noise. Selectively ignore messages."
 
 GIT_REPO_DOMAIN="gitlab.com"
 GIT_REPO_NAMESPACE="mbarkhau"
