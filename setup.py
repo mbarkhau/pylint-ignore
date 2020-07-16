@@ -41,7 +41,6 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
@@ -83,7 +82,7 @@ setuptools.setup(
     url="https://gitlab.com/mbarkhau/pylint-ignore",
     version="2020.1001a0",
     keywords="pylint ignore noise flake8 pep8 linter",
-    description="Reduce Pylint noise. Selectively ignore messages.",
+    description="Reduce Pylint noise. Triage messages. Ignore false positives.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages("src/"),
@@ -91,9 +90,9 @@ setuptools.setup(
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        pylint_ignore=pylint_ignore.__main__:cli
+        plinti=pylint_ignore.__main__:main
     """,
-    python_requires=">=2.7",
+    python_requires=">=3.5",
     zip_safe=True,
     classifiers=classifiers,
 )
