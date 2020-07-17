@@ -340,7 +340,8 @@ lint_flake8:
 .PHONY: lint_pylint
 lint_pylint:
 	@printf "pylint ..\n";
-	$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no src/
+	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no \
+		src/pylint_ignore/
 	@printf "\e[1F\e[9C ok\n"
 
 

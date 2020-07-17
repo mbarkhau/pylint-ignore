@@ -14,60 +14,59 @@ The reccomended approach to using `pylint-ignore` is:
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 91 - R0902 (too-many-instance-attributes)
+### Line 94 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
 - ignored: yes
 
-
 ```
-  89:
-  90:
-> 91: class PylintIgnoreDecorator:
-  92:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
-  93:     #   pattern, rather than the typical usage in python which is about function
+  92: 
+  93: 
+> 94: class PylintIgnoreDecorator:
+  95:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+  96:     #   pattern, rather than the typical usage in python which is about function
 ```
 
 
-### Line 155 - W0511 (fixme)
+### Line 158 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T11:39:54
 
+
 ```
-  124:     def _parse_args(self, args: typ.List[str]) -> None:
+  127:     def _parse_args(self, args: typ.List[str]) -> None:
   ...
-  153:             arg_i += 1
-  154:
-> 155:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  156:         #   ideal. It would be better if we could use the same config parsing logic
-  157:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  156:             arg_i += 1
+  157: 
+> 158:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  159:         #   ideal. It would be better if we could use the same config parsing logic
+  160:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 
-### Line 196 - W0613 (unused-argument)
+### Line 199 - W0613 (unused-argument)
 
 - message: Unused argument 'lineno'
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
 - ignored: This is part of the pylint api.
 
-
 ```
-  190:     def is_enabled_entry(
+  193:     def is_enabled_entry(
   ...
-  194:         symbol  : str,
-  195:         msg_text: str,
-> 196:         lineno  : int,
-  197:         srctxt  : catalog.MaybeSourceText,
-  198:     ) -> bool:
+  197:         symbol  : str,
+  198:         msg_text: str,
+> 199:         lineno  : int,
+  200:         srctxt  : catalog.MaybeSourceText,
+  201:     ) -> bool:
 ```
 
 
-### Line 277 - C0415 (import-outside-toplevel)
+### Line 280 - C0415 (import-outside-toplevel)
 
 - message: Import outside toplevel (pylint.message.message_handler_mix_in.MessagesHandlerMixIn)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -75,17 +74,17 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: because monkey patching
 
 ```
-  273:     def monkey_patch_pylint(self) -> None:
+  276:     def monkey_patch_pylint(self) -> None:
   ...
-  275:         #   found. Though I'm not quite sure why msg_descr that is a code would
-  276:         #   imply that it's a candidate to generate output and otherwise not.
-> 277:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-  278:
-  279:         self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
+  278:         #   found. Though I'm not quite sure why msg_descr that is a code would
+  279:         #   imply that it's a candidate to generate output and otherwise not.
+> 280:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
+  281: 
+  282:         self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
 ```
 
 
-### Line 293 - C0415 (import-outside-toplevel)
+### Line 296 - C0415 (import-outside-toplevel)
 
 - message: Import outside toplevel (pylint.lint)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -93,13 +92,13 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: because monkey patching
 
 ```
-  286: def main() -> ExitCode:
+  289: def main() -> ExitCode:
   ...
-  291:     try:
-  292:         # We don't want to load this code before the monkey patching is done.
-> 293:         import pylint.lint
-  294:
-  295:         pylint.lint.Run(dec.pylint_run_args)
+  294:     try:
+  295:         # We don't want to load this code before the monkey patching is done.
+> 296:         import pylint.lint
+  297: 
+  298:         pylint.lint.Run(dec.pylint_run_args)
 ```
 
 
