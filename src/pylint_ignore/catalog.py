@@ -61,18 +61,18 @@ $
 LIST_ITEM_RE = re.compile(_LIST_ITEM_PATTERN, flags=re.VERBOSE)
 
 
-# https://regex101.com/r/Cc8w4v/4
+# https://regex101.com/r/Cc8w4v/5
 _SOURCE_TEXT_PATTERN = r"""
 (```|~~~)(?P<language>\w+)?
     (
         (?:\s+(?P<def_lineno>\d+):\s(?P<def_line>.*))?
         \s+\.\.\.
     )?
-    (?:\s+\d+:\s.*)?
-    (?:\s+\d+:\s.*)?
-    \s*\>\s(?P<source_lineno>\d+):\s(?P<source_line>.*)
-    (?:\s+\d+:\s.*)?
-    (?:\s+\d+:\s.*)?
+    (?:\s+\d+:\s?.*)?
+    (?:\s+\d+:\s?.*)?
+    \s*\>\s+(?P<source_lineno>\d+):\s(?P<source_line>.*)
+    (?:\s+\d+:\s?.*)?
+    (?:\s+\d+:\s?.*)?
     \s*
 (```|~~~)
 """
@@ -158,7 +158,7 @@ def find_source_text_lineno(path: str, old_source_line: str, old_lineno: int) ->
     #       just be replaced by a new entry which will have to be acknowledged
     #       again. The git diff should make very obvious what happened.
 
-    for offset in range(9):
+    for offset in range(100):
         for line_idx in {old_line_idx - offset, old_line_idx + offset}:
             is_matching_line = (
                 0 <= line_idx < len(lines) and lines[line_idx].rstrip() == old_source_line.rstrip()
@@ -227,15 +227,19 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
     if old_source_text_match is None:
         raise ObsoleteEntry("Invalid source text")
 
-    path       = entry_vals['path']
-    old_lineno = int(entry_vals['lineno'])
+    path = entry_vals['path']
 
     # NOTE (mb 2020-07-16): The file may have changed in the meantime,
     #    so we search for the original source text (which may be on a
     #    different line).
     old_source_line = old_source_text_match.group('source_line')
-    new_lineno      = find_source_text_lineno(path, old_source_line, old_lineno)
-    srctxt          = read_source_text(path, new_lineno)
+
+    old_lineno = int(entry_vals['lineno'])
+    new_lineno = find_source_text_lineno(path, old_source_line, old_lineno)
+    srctxt     = read_source_text(path, new_lineno)
+
+    # preserve old lineno, otherwise the catalog won't be updated
+    srctxt = srctxt._replace(lineno=old_lineno)
 
     catalog_entry = Entry(
         entry_vals['msg_id'],
@@ -280,10 +284,12 @@ def _dumps_entry(entry: Entry) -> str:
 
         for offset, line in enumerate(srctxt.text.splitlines()):
             src_lineno = srctxt.start_idx + offset + 1
+            # padded_line is to avoid trailing whitespace
+            padded_line = " " + line if line.strip() else ""
             if srctxt.lineno == src_lineno:
-                dumps_line = f"> {src_lineno:>{padding_size}}: {line}"
+                dumps_line = f"> {src_lineno:>{padding_size}}:{padded_line}"
             else:
-                dumps_line = f"  {src_lineno:>{padding_size}}: {line}"
+                dumps_line = f"  {src_lineno:>{padding_size}}:{padded_line}"
             src_lines.append(dumps_line)
 
         ctx_src_text = "\n".join(src_lines)

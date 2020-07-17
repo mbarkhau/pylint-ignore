@@ -31,7 +31,7 @@ def ignore_file():
 
 
 def test_selftest_no_ignore_update(ignore_file, capsys):
-    if sys.version < "3.8":
+    if sys.version < "3.7":
         return
 
     os.chdir(str(PROJECT_DIR))
@@ -51,7 +51,7 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
 
 
 def test_selftest_ignore_update_noop(ignore_file, capsys):
-    if sys.version < "3.8":
+    if sys.version < "3.7":
         return
 
     os.chdir(str(PROJECT_DIR))

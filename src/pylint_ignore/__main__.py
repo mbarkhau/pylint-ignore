@@ -20,6 +20,8 @@ import datetime as dt
 import subprocess as sp
 
 import pathlib2 as pl
+import pylint.lint
+from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
 
 from . import catalog
 
@@ -163,9 +165,9 @@ class PylintIgnoreDecorator:
 
     def _new_entry(
         self,
-        catalog_key: catalog.Key,
-        old_entry  : typ.Optional[catalog.Entry],
-        srctxt     : catalog.MaybeSourceText,
+        key      : catalog.Key,
+        old_entry: typ.Optional[catalog.Entry],
+        srctxt   : catalog.MaybeSourceText,
     ) -> catalog.Entry:
         ignored     : typ.Optional[str] = None
         if old_entry:
@@ -180,24 +182,11 @@ class PylintIgnoreDecorator:
             ignored = self.default_ignored
 
         return catalog.Entry(
-            catalog_key.msg_id,
-            catalog_key.path,
-            catalog_key.symbol,
-            catalog_key.msg_text,
-            author,
-            date,
-            ignored,
-            srctxt,
+            key.msg_id, key.path, key.symbol, key.msg_text, author, date, ignored, srctxt,
         )
 
     def is_enabled_entry(
-        self,
-        msg_id  : str,
-        path    : str,
-        symbol  : str,
-        msg_text: str,
-        lineno  : int,
-        srctxt  : catalog.MaybeSourceText,
+        self, msg_id: str, path: str, symbol: str, msg_text: str, srctxt: catalog.MaybeSourceText,
     ) -> bool:
         """Return false if message is in the serialized catalog.
 
@@ -205,10 +194,10 @@ class PylintIgnoreDecorator:
         """
 
         ctx_src_text = srctxt.text if srctxt else ""
-        catalog_key  = catalog.Key(msg_id, path, symbol, msg_text, ctx_src_text)
-        old_entry    = self.old_ignore_catalog.get(catalog_key)
-        new_entry    = self._new_entry(catalog_key, old_entry, srctxt)
-        self.new_ignore_catalog[catalog_key] = new_entry
+        key          = catalog.Key(msg_id, path, symbol, msg_text, ctx_src_text)
+        old_entry    = self.old_ignore_catalog.get(key)
+        new_entry    = self._new_entry(key, old_entry, srctxt)
+        self.new_ignore_catalog[key] = new_entry
 
         if old_entry:
             _ignored_str = (old_entry.ignored or "").lower().strip()
@@ -227,7 +216,7 @@ class PylintIgnoreDecorator:
                     msg_text = msg_def.msg
 
                 _is_enabled = self.is_enabled_entry(
-                    msgid, linter.current_file, msg_def.symbol, msg_text, line or -1, srctxt,
+                    msgid, linter.current_file, msg_def.symbol, msg_text, srctxt,
                 )
                 if not _is_enabled:
                     return False
@@ -277,8 +266,6 @@ class PylintIgnoreDecorator:
         # NOTE (mb 2020-06-29): This is the easiest place to hook into that I've
         #   found. Though I'm not quite sure why msg_descr that is a code would
         #   imply that it's a candidate to generate output and otherwise not.
-        from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-
         self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
         self.pylint_add_message        = MessagesHandlerMixIn.add_message
 
@@ -286,8 +273,6 @@ class PylintIgnoreDecorator:
         MessagesHandlerMixIn.add_message        = self._add_message_wrapper()
 
     def monkey_unpatch_pylint(self) -> None:
-        from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-
         MessagesHandlerMixIn.is_message_enabled = self.pylint_is_message_enabled
         MessagesHandlerMixIn.add_message        = self.pylint_add_message
 
@@ -299,9 +284,6 @@ def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
 
         exit_code = 0
         try:
-            # We don't want to load this code before the monkey patching is done.
-            import pylint.lint
-
             pylint.lint.Run(dec.pylint_run_args)
         except SystemExit as sysexit:
             exit_code = sysexit.code

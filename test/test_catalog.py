@@ -103,6 +103,22 @@ def test_regex_source_text_def_line():
     assert match.group("source_lineno") == "155"
 
 
+def test_regex_source_text_edgecase():
+    source_text = '''
+    ```
+       96:
+       97:
+    >  98: class PylintIgnoreDecorator:
+       99:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+      100:     #   pattern, rather than the typical usage in python which is about function
+    ```
+    '''
+    source_text = textwrap.dedent(source_text.lstrip("\n").rstrip(" "))
+    match       = catalog.SOURCE_TEXT_RE.match(source_text)
+    assert match.group("source_line"  ) == "class PylintIgnoreDecorator:"
+    assert match.group("source_lineno") == "98"
+
+
 def test_read_source_lines():
     lines = catalog.read_source_lines(INIT_FILE_PATH)
 
@@ -147,7 +163,7 @@ TEST_CATALOG_TEXT = """
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 94 - R0902 (too-many-instance-attributes)
+### Line 96 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -163,11 +179,12 @@ TEST_CATALOG_TEXT = """
 ```
 
 
-### Line 158 - W0511 (fixme)
+### Line 160 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T11:39:54
+- ignored: because time constraints
 
 
 ```
@@ -223,15 +240,16 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_values = [
         {
             'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "94",
+            'lineno': "96",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
         },
         {
-            'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "158",
-            'msg_id': "W0511",
-            'symbol': "fixme",
+            'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
+            'lineno' : "160",
+            'msg_id' : "W0511",
+            'symbol' : "fixme",
+            'ignored': "because time constraints",
         },
         {
             'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
@@ -268,35 +286,38 @@ def test_load(tmp_ignorefile):
 
     _catalog = catalog.load(tmp_ignorefile)
     assert isinstance(_catalog, dict)
-    assert len(_catalog) == 3
+    # NOTE (mb 2020-07-17): one message was removed because it's obsolete
+    assert len(_catalog) == 2
 
     keys    = list(_catalog.keys())
     entries = list(_catalog.values())
 
-    assert keys[2].msg_id   == "C0415"
-    assert keys[2].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
-    assert keys[2].symbol   == "import-outside-toplevel"
-    assert keys[2].msg_text == "Import outside toplevel (pylint.lint)"
+    _todo_text = "TODO (mb 2020-07-17): This will override any configuration, but it is not"
 
-    assert entries[2].msg_id   == "C0415"
-    assert entries[2].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
-    assert entries[2].symbol   == "import-outside-toplevel"
-    assert entries[2].msg_text == "Import outside toplevel (pylint.lint)"
+    assert keys[1].msg_id   == "W0511"
+    assert keys[1].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
+    assert keys[1].symbol   == "fixme"
+    assert keys[1].msg_text == _todo_text
 
-    assert entries[2].srctxt.lineno == 303
-    assert entries[2].ignored       == "because monkey patching"
+    assert entries[1].msg_id   == "W0511"
+    assert entries[1].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
+    assert entries[1].symbol   == "fixme"
+    assert entries[1].msg_text == _todo_text
+
+    assert entries[1].srctxt.lineno == 160
+    assert entries[1].ignored       == "because time constraints"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
     #       so it must come from the source file.
     expected_ctx_src_text = """
-        try:
-            # We don't want to load this code before the monkey patching is done.
-            import pylint.lint
+            arg_i += 1
 
-            pylint.lint.Run(dec.pylint_run_args)
+        # TODO (mb 2020-07-17): This will override any configuration, but it is not
+        #   ideal. It would be better if we could use the same config parsing logic
+        #   as pylint and raise an error if anything other than jobs=1 is configured
     """
     expected_ctx_src_text = expected_ctx_src_text.lstrip("\n").rstrip(" ")
-    assert keys[2].ctx_src_text == expected_ctx_src_text
+    assert keys[1].ctx_src_text == expected_ctx_src_text
 
 
 def test_dump(tmp_ignorefile):

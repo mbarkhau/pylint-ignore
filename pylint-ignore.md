@@ -14,7 +14,7 @@ The reccomended approach to using `pylint-ignore` is:
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 94 - R0902 (too-many-instance-attributes)
+### Line 96 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -22,15 +22,15 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: yes
 
 ```
-  92:
-  93:
-> 94: class PylintIgnoreDecorator:
-  95:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
-  96:     #   pattern, rather than the typical usage in python which is about function
+  94:
+  95:
+> 96: class PylintIgnoreDecorator:
+  97:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+  98:     #   pattern, rather than the typical usage in python which is about function
 ```
 
 
-### Line 158 - W0511 (fixme)
+### Line 160 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -38,69 +38,17 @@ The reccomended approach to using `pylint-ignore` is:
 
 
 ```
-  127:     def _parse_args(self, args: typ.Sequence[str]) -> None:
+  129:     def _parse_args(self, args: typ.Sequence[str]) -> None:
   ...
-  156:             arg_i += 1
-  157:
-> 158:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  159:         #   ideal. It would be better if we could use the same config parsing logic
-  160:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  158:             arg_i += 1
+  159:
+> 160:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  161:         #   ideal. It would be better if we could use the same config parsing logic
+  162:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 
-### Line 199 - W0613 (unused-argument)
-
-- message: Unused argument 'lineno'
-- author : Manuel Barkhau <mbarkhau@gmail.com>
-- date   : 2020-07-17T09:59:24
-- ignored: This is part of the pylint api.
-
-```
-  193:     def is_enabled_entry(
-  ...
-  197:         symbol  : str,
-  198:         msg_text: str,
-> 199:         lineno  : int,
-  200:         srctxt  : catalog.MaybeSourceText,
-  201:     ) -> bool:
-```
-
-
-### Line 280 - C0415 (import-outside-toplevel)
-
-- message: Import outside toplevel (pylint.message.message_handler_mix_in.MessagesHandlerMixIn)
-- author : Manuel Barkhau <mbarkhau@gmail.com>
-- date   : 2020-07-17T10:50:36
-- ignored: because monkey patching
-
-```
-  276:     def monkey_patch_pylint(self) -> None:
-  ...
-  278:         #   found. Though I'm not quite sure why msg_descr that is a code would
-  279:         #   imply that it's a candidate to generate output and otherwise not.
-> 280:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-  281:
-  282:         self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
-```
-
-
-### Line 289 - C0415 (import-outside-toplevel)
-
-- message: Import outside toplevel (pylint.message.message_handler_mix_in.MessagesHandlerMixIn)
-- author : Manuel Barkhau <mbarkhau@gmail.com>
-- date   : 2020-07-17T21:15:25
-- ignored: because monkey patching
-
-```
-  287:
-  288:     def monkey_unpatch_pylint(self) -> None:
-> 289:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-  290:
-  291:         MessagesHandlerMixIn.is_message_enabled = self.pylint_is_message_enabled
-```
-
-
-### Line 295 - W0102 (dangerous-default-value)
+### Line 280 - W0102 (dangerous-default-value)
 
 - message: Dangerous default value sys.argv[1:] (builtins.list) as argument
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -108,29 +56,31 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: this is safe, we don't mutate args
 
 ```
-  293:
-  294:
-> 295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-  296:     dec = PylintIgnoreDecorator(args)
-  297:     try:
+  278:
+  279:
+> 280: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  281:     dec = PylintIgnoreDecorator(args)
+  282:     try:
 ```
 
 
-### Line 303 - C0415 (import-outside-toplevel)
+## File: src/pylint_ignore/catalog.py
 
-- message: Import outside toplevel (pylint.lint)
+### Line 242 - E1101 (no-member)
+
+- message: Instance of 'SourceText' has no '_replace' member
 - author : Manuel Barkhau <mbarkhau@gmail.com>
-- date   : 2020-07-17T10:50:36
-- ignored: because monkey patching
+- date   : 2020-07-17T23:53:07
+- ignored: yes, too bad pylint doesn't know about NamedTuple
 
 ```
-  295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  224: def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
   ...
-  301:         try:
-  302:             # We don't want to load this code before the monkey patching is done.
-> 303:             import pylint.lint
-  304:
-  305:             pylint.lint.Run(dec.pylint_run_args)
+  240:
+  241:     # preserve old lineno, otherwise the catalog won't be updated
+> 242:     srctxt = srctxt._replace(lineno=old_lineno)
+  243:
+  244:     catalog_entry = Entry(
 ```
 
 
