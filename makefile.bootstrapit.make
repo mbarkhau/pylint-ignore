@@ -21,6 +21,7 @@ ifndef SUPPORTED_PYTHON_VERSIONS
 endif
 
 PKG_NAME := $(PACKAGE_NAME)
+MODULE_NAME := $(shell echo $(subst -,_,$(PACKAGE_NAME)) | tr A-Z a-z)
 
 # TODO (mb 2018-09-23): Support for bash on windows
 #    perhaps we need to install conda using this
@@ -310,7 +311,7 @@ lint_isort:
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project pylint_ignore \
+		--project $(MODULE_NAME) \
 		src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
@@ -341,7 +342,7 @@ lint_flake8:
 lint_pylint:
 	@printf "pylint ..\n";
 	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no \
-		src/pylint_ignore/
+		src/$(MODULE_NAME)/
 	@printf "\e[1F\e[9C ok\n"
 
 
@@ -413,7 +414,7 @@ fmt_isort:
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project pylint_ignore \
+		--project $(MODULE_NAME) \
 		src/ test/;
 
 

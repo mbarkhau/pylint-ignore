@@ -281,7 +281,7 @@ def test_load(tmp_ignorefile):
     assert entries[2].symbol   == "import-outside-toplevel"
     assert entries[2].msg_text == "Import outside toplevel (pylint.lint)"
 
-    assert entries[2].srctxt.lineno == 294
+    assert entries[2].srctxt.lineno == 296
     assert entries[2].ignored       == "because intentional"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
