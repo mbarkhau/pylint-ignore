@@ -78,7 +78,7 @@ setuptools.setup(
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://gitlab.com/mbarkhau/pylint-ignore",
-    version="2020.1001",
+    version="2020.1002",
     keywords="pylint ignore noise flake8 pep8 linter",
     description="Reduce Pylint noise. Triage messages. Ignore false positives.",
     long_description=long_description,
