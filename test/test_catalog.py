@@ -147,7 +147,7 @@ TEST_CATALOG_TEXT = """
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 91 - R0902 (too-many-instance-attributes)
+### Line 94 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -155,47 +155,49 @@ TEST_CATALOG_TEXT = """
 
 
 ```
-  89:
-  90:
-> 91: class PylintIgnoreDecorator:
-  92:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
-  93:     #   pattern, rather than the typical usage in python which is about function
+  92:
+  93:
+> 94: class PylintIgnoreDecorator:
+  95:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+  96:     #   pattern, rather than the typical usage in python which is about function
 ```
 
 
-### Line 155 - W0511 (fixme)
+### Line 158 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T11:39:54
 
+
 ```
-  124:     def _parse_args(self, args: typ.List[str]) -> None:
+  127:     def _parse_args(self, args: typ.Sequence[str]) -> None:
   ...
-  153:             arg_i += 1
-  154:
-> 155:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  156:         #   ideal. It would be better if we could use the same config parsing logic
-  157:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  156:             arg_i += 1
+  157:
+> 158:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  159:         #   ideal. It would be better if we could use the same config parsing logic
+  160:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 
-### Line 293 - C0415 (import-outside-toplevel)
+### Line 303 - C0415 (import-outside-toplevel)
 
 - message: Import outside toplevel (pylint.lint)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T10:50:36
-- ignored: because intentional
+- ignored: because monkey patching
 
 ```
-  286: def main() -> ExitCode:
+  295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
   ...
-  291:     try:
-  292:         # The only line use for search is the one with the ">"
-> 293:         import pylint.lint
-  294:
-  295:         pylint.lint.Run(this is not invalid)
+  301:         try:
+  302:             # We don't want to load this code before the monkey patching is done.
+> 303:             import pylint.lint
+  304:
+  305:             pylint.lint.Run(dec.pylint_run_args)
 ```
+
 
 """
 
@@ -221,22 +223,22 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_values = [
         {
             'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "91",
+            'lineno': "94",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
         },
         {
             'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "155",
+            'lineno': "158",
             'msg_id': "W0511",
             'symbol': "fixme",
         },
         {
             'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno' : "293",
+            'lineno' : "303",
             'msg_id' : "C0415",
             'symbol' : "import-outside-toplevel",
-            'ignored': "because intentional",
+            'ignored': "because monkey patching",
         },
     ]
 
@@ -281,17 +283,17 @@ def test_load(tmp_ignorefile):
     assert entries[2].symbol   == "import-outside-toplevel"
     assert entries[2].msg_text == "Import outside toplevel (pylint.lint)"
 
-    assert entries[2].srctxt.lineno == 296
-    assert entries[2].ignored       == "because intentional"
+    assert entries[2].srctxt.lineno == 303
+    assert entries[2].ignored       == "because monkey patching"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
     #       so it must come from the source file.
     expected_ctx_src_text = """
-    try:
-        # We don't want to load this code before the monkey patching is done.
-        import pylint.lint
+        try:
+            # We don't want to load this code before the monkey patching is done.
+            import pylint.lint
 
-        pylint.lint.Run(dec.pylint_run_args)
+            pylint.lint.Run(dec.pylint_run_args)
     """
     expected_ctx_src_text = expected_ctx_src_text.lstrip("\n").rstrip(" ")
     assert keys[2].ctx_src_text == expected_ctx_src_text

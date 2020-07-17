@@ -111,7 +111,7 @@ class PylintIgnoreDecorator:
     # and later use in is_message_enabled
     _cur_msg_args: typ.List[typ.Any]
 
-    def __init__(self, args: typ.List[str]) -> None:
+    def __init__(self, args: typ.Sequence[str]) -> None:
         self.old_ignore_catalog: catalog.Catalog = catalog.load()
         self.new_ignore_catalog: catalog.Catalog = {}
         self.default_author  = get_author_name()
@@ -124,13 +124,13 @@ class PylintIgnoreDecorator:
 
         self._cur_msg_args: typ.List[typ.Any] = []
 
-    def _parse_args(self, args: typ.List[str]) -> None:
+    def _parse_args(self, args: typ.Sequence[str]) -> None:
         arg_i = 0
         while arg_i < len(args):
             arg = args[arg_i]
-            if "--no-ignore-update" in args:
+            if arg == '--no-ignore-update':
                 self.is_ignore_update_enabled = False
-            elif "--ignore-update" in args:
+            elif arg == '--ignore-update':
                 self.is_ignore_update_enabled = True
             elif arg.startswith("--jobs") or arg.startswith("-j"):
                 # NOTE (mb 2020-07-17): Use of the --jobs parameter is prohibited
@@ -285,25 +285,34 @@ class PylintIgnoreDecorator:
         MessagesHandlerMixIn.is_message_enabled = self._is_message_enabled_wrapper()
         MessagesHandlerMixIn.add_message        = self._add_message_wrapper()
 
+    def monkey_unpatch_pylint(self) -> None:
+        from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
 
-def main() -> ExitCode:
-    dec = PylintIgnoreDecorator(args=sys.argv[1:])
-    dec.monkey_patch_pylint()
+        MessagesHandlerMixIn.is_message_enabled = self.pylint_is_message_enabled
+        MessagesHandlerMixIn.add_message        = self.pylint_add_message
 
-    exit_code = 0
+
+def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+    dec = PylintIgnoreDecorator(args)
     try:
-        # We don't want to load this code before the monkey patching is done.
-        import pylint.lint
+        dec.monkey_patch_pylint()
 
-        pylint.lint.Run(dec.pylint_run_args)
-    except SystemExit as sysexit:
-        exit_code = sysexit.code
-    except KeyboardInterrupt:
-        return 1
+        exit_code = 0
+        try:
+            # We don't want to load this code before the monkey patching is done.
+            import pylint.lint
 
-    is_catalog_dirty = dec.old_ignore_catalog != dec.new_ignore_catalog
-    if is_catalog_dirty and dec.is_ignore_update_enabled:
-        catalog.dump(dec.new_ignore_catalog)
+            pylint.lint.Run(dec.pylint_run_args)
+        except SystemExit as sysexit:
+            exit_code = sysexit.code
+        except KeyboardInterrupt:
+            return 1
+
+        is_catalog_dirty = dec.old_ignore_catalog != dec.new_ignore_catalog
+        if is_catalog_dirty and dec.is_ignore_update_enabled:
+            catalog.dump(dec.new_ignore_catalog)
+    finally:
+        dec.monkey_unpatch_pylint()
 
     return exit_code
 

@@ -22,8 +22,8 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: yes
 
 ```
-  92: 
-  93: 
+  92:
+  93:
 > 94: class PylintIgnoreDecorator:
   95:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
   96:     #   pattern, rather than the typical usage in python which is about function
@@ -38,10 +38,10 @@ The reccomended approach to using `pylint-ignore` is:
 
 
 ```
-  127:     def _parse_args(self, args: typ.List[str]) -> None:
+  127:     def _parse_args(self, args: typ.Sequence[str]) -> None:
   ...
   156:             arg_i += 1
-  157: 
+  157:
 > 158:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
   159:         #   ideal. It would be better if we could use the same config parsing logic
   160:         #   as pylint and raise an error if anything other than jobs=1 is configured
@@ -79,12 +79,44 @@ The reccomended approach to using `pylint-ignore` is:
   278:         #   found. Though I'm not quite sure why msg_descr that is a code would
   279:         #   imply that it's a candidate to generate output and otherwise not.
 > 280:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-  281: 
+  281:
   282:         self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
 ```
 
 
-### Line 296 - C0415 (import-outside-toplevel)
+### Line 289 - C0415 (import-outside-toplevel)
+
+- message: Import outside toplevel (pylint.message.message_handler_mix_in.MessagesHandlerMixIn)
+- author : Manuel Barkhau <mbarkhau@gmail.com>
+- date   : 2020-07-17T21:15:25
+- ignored: because monkey patching
+
+```
+  287:
+  288:     def monkey_unpatch_pylint(self) -> None:
+> 289:         from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
+  290:
+  291:         MessagesHandlerMixIn.is_message_enabled = self.pylint_is_message_enabled
+```
+
+
+### Line 295 - W0102 (dangerous-default-value)
+
+- message: Dangerous default value sys.argv[1:] (builtins.list) as argument
+- author : Manuel Barkhau <mbarkhau@gmail.com>
+- date   : 2020-07-17T21:15:25
+- ignored: this is safe, we don't mutate args
+
+```
+  293:
+  294:
+> 295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  296:     dec = PylintIgnoreDecorator(args)
+  297:     try:
+```
+
+
+### Line 303 - C0415 (import-outside-toplevel)
 
 - message: Import outside toplevel (pylint.lint)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -92,13 +124,13 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: because monkey patching
 
 ```
-  289: def main() -> ExitCode:
+  295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
   ...
-  294:     try:
-  295:         # We don't want to load this code before the monkey patching is done.
-> 296:         import pylint.lint
-  297: 
-  298:         pylint.lint.Run(dec.pylint_run_args)
+  301:         try:
+  302:             # We don't want to load this code before the monkey patching is done.
+> 303:             import pylint.lint
+  304:
+  305:             pylint.lint.Run(dec.pylint_run_args)
 ```
 
 
