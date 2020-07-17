@@ -45,3 +45,7 @@ pycalver
 lxml
 
 lib3to6
+
+# yes, we depend on a previous version of ourselves
+#   (at least for integration purposes)
+pylint-ignore
