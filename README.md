@@ -1,4 +1,4 @@
-# [`pylint-ignore`][repo_ref]
+# [Pylint-Ignore][repo_ref]
 
 Reduce Pylint noise. Triage messages. Ignore false positives.
 

@@ -340,7 +340,8 @@ lint_flake8:
 .PHONY: lint_pylint
 lint_pylint:
 	@printf "pylint ..\n";
-	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no src/
+	@PYTHONPATH=src/:$$PYTHONPATH \
+		$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no src/
 	@printf "\e[1F\e[9C ok\n"
 
 
@@ -562,6 +563,7 @@ dist_upload:
 	$(DEV_ENV)/bin/twine check $$($(SDIST_FILE_CMD));
 	$(DEV_ENV)/bin/twine check $$($(BDIST_WHEEL_FILE_CMD));
 	$(DEV_ENV)/bin/twine upload --skip-existing \
+		--repository pypi-legacy \
 		$$($(SDIST_FILE_CMD)) $$($(BDIST_WHEEL_FILE_CMD));
 
 

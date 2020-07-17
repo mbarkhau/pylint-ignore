@@ -19,6 +19,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
+- ignored: yes
 
 
 ```
@@ -52,6 +53,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: Unused argument 'lineno'
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
+- ignored: This is part of the pylint api.
 
 
 ```
@@ -70,6 +72,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: Import outside toplevel (pylint.message.message_handler_mix_in.MessagesHandlerMixIn)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T10:50:36
+- ignored: because monkey patching
 
 ```
   273:     def monkey_patch_pylint(self) -> None:
@@ -87,6 +90,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: Import outside toplevel (pylint.lint)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T10:50:36
+- ignored: because monkey patching
 
 ```
   286: def main() -> ExitCode:
