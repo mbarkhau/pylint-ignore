@@ -34,12 +34,16 @@ RUN if ! test -z "${ENV_SSH_PRIVATE_RSA_KEY}"; then \
     ssh-keygen -y -f /root/.ssh/id_rsa > /root/.ssh/id_rsa.pub; \
     fi
 
-ADD requirements/ requirements/
 ADD scripts/ scripts/
-
 ADD makefile.bootstrapit.make makefile.bootstrapit.make
 ADD makefile makefile
 
+# install envs (relatively stable)
+ADD requirements/conda.txt requirements/conda.txt
+RUN make build/envs.txt
+
+# install python package dependencies (change more often)
+ADD requirements/ requirements/
 RUN make install
 
 RUN rm -f /root/.ssh/id_rsa
