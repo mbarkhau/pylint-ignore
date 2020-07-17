@@ -11,6 +11,7 @@ import textwrap
 
 import pytest
 import pathlib2 as pl
+
 from pylint_ignore import catalog
 
 PROJECT_DIR = pl.Path(__file__).parent.parent

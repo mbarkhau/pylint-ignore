@@ -310,7 +310,7 @@ lint_isort:
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project $(PKG_NAME) \
+		--project pylint_ignore \
 		src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
@@ -413,7 +413,7 @@ fmt_isort:
 		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
-		--project $(PKG_NAME) \
+		--project pylint_ignore \
 		src/ test/;
 
 
