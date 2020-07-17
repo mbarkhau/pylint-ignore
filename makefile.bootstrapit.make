@@ -303,7 +303,7 @@ git_hooks:
 ## Run isort with --check-only
 .PHONY: lint_isort
 lint_isort:
-	@printf "isort ..\n"
+	@printf "isort ...\n"
 	@$(DEV_ENV)/bin/isort \
 		--check-only \
 		--force-single-line-imports \
@@ -318,7 +318,7 @@ lint_isort:
 ## Run sjfmt with --check
 .PHONY: lint_sjfmt
 lint_sjfmt:
-	@printf "sjfmt ..\n"
+	@printf "sjfmt ...\n"
 	@$(DEV_ENV)/bin/sjfmt \
 		--target-version=py36 \
 		--skip-string-normalization \
@@ -336,9 +336,17 @@ lint_flake8:
 	@printf "\e[1F\e[9C ok\n"
 
 
+## Run pylint. Should not break the build yet
+.PHONY: lint_pylint
+lint_pylint:
+	@printf "pylint ..\n";
+	@$(DEV_ENV)/bin/pylint-ignore --rcfile=setup.cfg --score=no src/
+	@printf "\e[1F\e[9C ok\n"
+
+
 ## Run flake8 linter and check for fmt
 .PHONY: lint
-lint: lint_isort lint_sjfmt
+lint: lint_isort lint_sjfmt lint_flake8 lint_pylint
 
 
 ## Run mypy type checker
@@ -351,14 +359,6 @@ mypy:
 		--html-report mypycov \
 		--no-error-summary \
 		src/ | sed "/Generated HTML report/d"
-	@printf "\e[1F\e[9C ok\n"
-
-
-## Run pylint. Should not break the build yet
-.PHONY: pylint
-pylint:
-	@printf "pylint ..\n";
-	@$(DEV_ENV)/bin/pylint --rcfile=setup.cfg src/ test/
 	@printf "\e[1F\e[9C ok\n"
 
 

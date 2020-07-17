@@ -23,9 +23,7 @@ GIT_REPO_NAMESPACE="mbarkhau"
 PACKAGE_NAME="pylint-ignore"
 MODULE_NAME="pylint_ignore"
 
-# PACKAGE_VERSION="2019.1001-alpha"
-# PACKAGE_VERSION="v0.1.0"
-PACKAGE_VERSION="$(date +'%Y.1001-alpha')"
+PACKAGE_VERSION="2020.1001"
 
 # These must be valid (space separated) conda package names.
 # A separate conda environment will be created for each of these.

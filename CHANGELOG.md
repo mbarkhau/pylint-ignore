@@ -1,5 +1,5 @@
 # Changelog for https://gitlab.com/mbarkhau/pylint-ignore
 
-## v2020.1001-alpha
+## 2020.1001
 
  - Initial release

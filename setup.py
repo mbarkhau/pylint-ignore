@@ -41,6 +41,7 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
@@ -55,15 +56,12 @@ classifiers = [
 package_dir = {"": "src"}
 
 
-is_lib3to6_fix_required = (
-    any(arg.startswith("bdist") for arg in sys.argv)
-    and "Programming Language :: Python :: 2.7" in classifiers
-)
+is_lib3to6_fix_required = any(arg.startswith("bdist") for arg in sys.argv)
 
 if is_lib3to6_fix_required:
     try:
         import lib3to6
-        package_dir = lib3to6.fix(package_dir)
+        package_dir = lib3to6.fix(package_dir, target_version="2.7")
     except ImportError:
         if sys.version_info < (3, 6):
             raise
@@ -80,7 +78,7 @@ setuptools.setup(
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://gitlab.com/mbarkhau/pylint-ignore",
-    version="2020.1001a0",
+    version="2020.1001",
     keywords="pylint ignore noise flake8 pep8 linter",
     description="Reduce Pylint noise. Triage messages. Ignore false positives.",
     long_description=long_description,
@@ -90,9 +88,9 @@ setuptools.setup(
     install_requires=install_requires,
     entry_points="""
         [console_scripts]
-        plinti=pylint_ignore.__main__:main
+        pylint-ignore=pylint_ignore.__main__:main
     """,
-    python_requires=">=3.5",
+    python_requires=">=2.7",
     zip_safe=True,
     classifiers=classifiers,
 )
