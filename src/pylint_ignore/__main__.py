@@ -207,10 +207,13 @@ class PylintIgnoreDecorator:
         Side effect: Track new entries for serialization.
         """
 
-        ctx_src_text = srctxt.text if srctxt else ""
-        key          = catalog.Key(msg_id, path, symbol, msg_text, ctx_src_text)
-        old_entry    = self.old_ignore_catalog.get(key)
-        new_entry    = self._new_entry(key, old_entry, srctxt)
+        pwd         = pl.Path(".").absolute()
+        rel_path    = str(pl.Path(path).absolute().relative_to(pwd))
+        source_line = srctxt.source_line if srctxt else ""
+        key         = catalog.Key(msg_id, rel_path, symbol, msg_text, source_line)
+        old_entry   = self.old_ignore_catalog.get(key)
+        new_entry   = self._new_entry(key, old_entry, srctxt)
+
         self.new_ignore_catalog[key] = new_entry
 
         if old_entry:

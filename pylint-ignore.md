@@ -19,6 +19,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
+- path   : src/pylint_ignore/__main__.py
 - ignored: yes
 
 ```
@@ -35,6 +36,7 @@ The reccomended approach to using `pylint-ignore` is:
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T11:39:54
+- path   : src/pylint_ignore/__main__.py
 
 
 ```
@@ -48,19 +50,20 @@ The reccomended approach to using `pylint-ignore` is:
 ```
 
 
-### Line 294 - W0102 (dangerous-default-value)
+### Line 297 - W0102 (dangerous-default-value)
 
 - message: Dangerous default value sys.argv[1:] (builtins.list) as argument
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T21:15:25
-- ignored: this is safe, we don't mutate args
+- path   : src/pylint_ignore/__main__.py
+- ignored: this is safe, we don't mutate args, mypy would catch it if we do
 
 ```
-  292:
-  293:
-> 294: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-  295:     dec = PylintIgnoreDecorator(args)
-  296:     try:
+  295:
+  296:
+> 297: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  298:     dec = PylintIgnoreDecorator(args)
+  299:     try:
 ```
 
 

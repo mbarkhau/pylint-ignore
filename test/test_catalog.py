@@ -29,6 +29,7 @@ LINE_TEST_CASES = [
     "- ### Line 91 - R0902 (too-many-instance-attributes)",
     "- message: Too many instance attributes (10/7)",
     "- author : Manuel Barkhau <mbarkhau@gmail.com>",
+    "- path   : src/pylint_ignore/__main__.py",
     " - date   : 2020-07-17T09:59:24",
     " - ignored: no",
     "- ignored: Yes, really! I know what I'm doing, leave me alone mom!",
@@ -60,6 +61,7 @@ def test_regex_list_item():
     expected      = [
         {'key': "message", 'value': "Too many instance attributes (10/7)"},
         {'key': "author" , 'value': "Manuel Barkhau <mbarkhau@gmail.com>"},
+        {'key': "path"   , 'value': "src/pylint_ignore/__main__.py"},
         {'key': "date"   , 'value': "2020-07-17T09:59:24"},
         {'key': "ignored", 'value': "no"},
         {'key': "ignored", 'value': "Yes, really! I know what I'm doing, leave me alone mom!"},
@@ -162,13 +164,14 @@ def test_find_source_text_lineno():
 
 TEST_CATALOG_TEXT = """
 
-## File: src/pylint_ignore/__main__.py
+## File: src/pylint_ignore/invalid.py
 
 ### Line 110 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T09:59:24
+- path   : src/pylint_ignore/__main__.py
 
 
 ```
@@ -185,6 +188,7 @@ TEST_CATALOG_TEXT = """
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T11:39:54
+- path   : src/pylint_ignore/__main__.py
 - ignored: because time constraints
 
 
@@ -204,6 +208,7 @@ TEST_CATALOG_TEXT = """
 - message: Import outside toplevel (pylint.lint)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
 - date   : 2020-07-17T10:50:36
+- path   : src/pylint_ignore/__main__.py
 - ignored: because monkey patching
 
 ```
@@ -240,20 +245,20 @@ def test_iter_entry_values(tmp_ignorefile):
 
     expected_values = [
         {
-            'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
+            'path'  : "src/pylint_ignore/__main__.py",
             'lineno': "110",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
         },
         {
-            'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
+            'path'   : "src/pylint_ignore/__main__.py",
             'lineno' : "174",
             'msg_id' : "W0511",
             'symbol' : "fixme",
             'ignored': "because time constraints",
         },
         {
-            'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
+            'path'   : "src/pylint_ignore/__main__.py",
             'lineno' : "303",
             'msg_id' : "C0415",
             'symbol' : "import-outside-toplevel",
@@ -274,21 +279,23 @@ def test_iter_entry_values(tmp_ignorefile):
         'ctx_src_text',
     }
     for actual, expected in zip(entry_values, expected_values):
+        missing_keys = expected_keys - set(actual.keys())
+        assert not missing_keys
+
         actual_items   = set(actual.items())
         expected_items = set(expected.items())
-        assert expected_items <= actual_items
-        assert expected_keys  <= set(actual.keys())
+        missing_items  = expected_items - actual_items
+        assert not missing_items
+
         assert actual['ctx_src_text'].startswith("```\n")
         assert actual['ctx_src_text'].endswith("```\n")
 
 
 def test_load(tmp_ignorefile):
-    tmpdir = tmp_ignorefile.parent
-
     _catalog = catalog.load(tmp_ignorefile)
     assert isinstance(_catalog, dict)
     # NOTE (mb 2020-07-17): one message was removed because it's obsolete
-    assert len(_catalog) == 2
+    assert len(_catalog) == 3
 
     keys    = list(_catalog.keys())
     entries = list(_catalog.values())
@@ -296,12 +303,12 @@ def test_load(tmp_ignorefile):
     _todo_text = "TODO (mb 2020-07-17): This will override any configuration, but it is not"
 
     assert keys[1].msg_id   == "W0511"
-    assert keys[1].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
+    assert keys[1].path     == "src/pylint_ignore/__main__.py"
     assert keys[1].symbol   == "fixme"
     assert keys[1].msg_text == _todo_text
 
     assert entries[1].msg_id   == "W0511"
-    assert entries[1].path     == str(tmpdir / "src" / "pylint_ignore" / "__main__.py")
+    assert entries[1].path     == "src/pylint_ignore/__main__.py"
     assert entries[1].symbol   == "fixme"
     assert entries[1].msg_text == _todo_text
 
@@ -311,21 +318,17 @@ def test_load(tmp_ignorefile):
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
     #       so it must come from the source file.
-    expected_ctx_src_text = """
-            arg_i += 1
-
+    expected_source_line = """
         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-        #   ideal. It would be better if we could use the same config parsing logic
-        #   as pylint and raise an error if anything other than jobs=1 is configured
     """
-    expected_ctx_src_text = expected_ctx_src_text.lstrip("\n").rstrip(" ")
-    assert keys[1].ctx_src_text == expected_ctx_src_text
+    expected_source_line = expected_source_line.lstrip("\n").rstrip(" ")
+    assert keys[1].source_line == expected_source_line
 
 
 def test_dump(tmp_ignorefile):
     _in_catalog = catalog.load(tmp_ignorefile)
+    assert len(_in_catalog) == 3
 
-    # def dump(catalog: Catalog, catalog_path: pl.Path) -> None:
     tmpdir   = tmp_ignorefile.parent
     out_file = pl.Path(str(tmpdir)) / "pylint-ignore-output.md"
     catalog.dump(_in_catalog, out_file)
@@ -336,14 +339,10 @@ def test_dump(tmp_ignorefile):
     assert catalog_text.startswith(catalog.CATALOG_HEADER)
 
     _out_catalog = catalog.load(out_file)
-    assert len(_in_catalog) == len(_out_catalog)
+    # NOTE (mb 2020-07-18): The C0415 entry was removed
+    assert len(_out_catalog) == 2
 
-    if _in_catalog != _out_catalog:
-        print()
-        _in_entries  = _in_catalog.values()
-        _out_entries = _out_catalog.values()
-        for in_entry, out_entry in zip(_in_entries, _out_entries):
-            print(in_entry)
-            print(out_entry)
+    _in_entries  = list(_in_catalog.values())[:2]
+    _out_entries = list(_out_catalog.values())[:2]
 
-    assert _in_catalog == _out_catalog, "serialization round trip failed"
+    assert _in_entries == _out_entries, "serialization round trip failed"

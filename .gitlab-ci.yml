@@ -5,25 +5,15 @@ stages:
 
 lint:
   stage: test
-  needs: []
   image: registry.gitlab.com/mbarkhau/pylint-ignore/base
   script:
     - make lint
     - make mypy
-  artifacts:
-    paths:
-      - mypycov/
-  allow_failure: false
-
-unit:
-  stage: test
-  needs: []
-  image: registry.gitlab.com/mbarkhau/pylint-ignore/base
-  script:
     - make test
   coverage: '/^(TOTAL|src).*?(\d+\%)$/'
   artifacts:
     paths:
+      - mypycov/
       - htmlcov/
   allow_failure: false
 

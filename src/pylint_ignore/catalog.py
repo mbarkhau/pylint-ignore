@@ -15,6 +15,7 @@ ENTRY_TEMPLATE = """
 - message: {entry.msg_text}
 - author : {entry.author}
 - date   : {entry.date}
+- path   : {entry.path}
 {ignored_line}
 
 ```
@@ -49,10 +50,10 @@ $
 ENTRY_HEADER_RE = re.compile(_ENTRY_HEADER_PATTERN, flags=re.VERBOSE)
 
 
-# https://regex101.com/r/6JViif/1
+# https://regex101.com/r/6JViif/2
 _LIST_ITEM_PATTERN = r"""
 ^
-\s*-\s(?P<key>message|author|date|ignored)
+\s*-\s(?P<key>message|author|date|path|ignored)
 \s*:\s
 (?P<value>.*)
 $
@@ -84,6 +85,7 @@ class SourceText(typ.NamedTuple):
 
     new_lineno  : int
     old_lineno  : int
+    source_line : str
     text        : str
     start_idx   : int
     end_idx     : int
@@ -102,11 +104,11 @@ class Key(typ.NamedTuple):
     to a file. In particular, it doesn't have the lineno.
     """
 
-    msg_id      : str
-    path        : str
-    symbol      : str
-    msg_text    : str
-    ctx_src_text: str
+    msg_id     : str
+    path       : str
+    symbol     : str
+    msg_text   : str
+    source_line: str
 
 
 class Entry(typ.NamedTuple):
@@ -180,6 +182,7 @@ def read_source_text(path: str, new_lineno: int, old_lineno: int) -> SourceText:
     src_lines = lines[start_idx:end_idx]
     src_text  = "".join(src_lines)
 
+    source_line = lines[line_idx]
     def_line_idx: typ.Optional[int] = None
     def_line    : typ.Optional[str] = None
 
@@ -199,7 +202,9 @@ def read_source_text(path: str, new_lineno: int, old_lineno: int) -> SourceText:
 
         maybe_def_idx -= 1
 
-    return SourceText(new_lineno, old_lineno, src_text, start_idx, end_idx, def_line_idx, def_line)
+    return SourceText(
+        new_lineno, old_lineno, source_line, src_text, start_idx, end_idx, def_line_idx, def_line
+    )
 
 
 CATALOG_HEADER = """# Catalog file for `pylint-ignore`
@@ -223,8 +228,8 @@ EntryValues = typ.Dict[str, str]
 
 
 def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
-    ctx_src_text          = entry_vals['ctx_src_text']
-    old_source_text_match = SOURCE_TEXT_RE.match(ctx_src_text)
+    old_ctx_src_text      = entry_vals['ctx_src_text']
+    old_source_text_match = SOURCE_TEXT_RE.match(old_ctx_src_text)
     if old_source_text_match is None:
         raise ObsoleteEntry("Invalid source text")
 
@@ -236,12 +241,17 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
     old_source_line = old_source_text_match.group('source_line')
 
     old_lineno = int(entry_vals['lineno'])
-    new_lineno = find_source_text_lineno(path, old_source_line, old_lineno)
-    srctxt     = read_source_text(path, new_lineno, old_lineno)
+    srctxt: MaybeSourceText = None
+    try:
+        new_lineno  = find_source_text_lineno(path, old_source_line, old_lineno)
+        srctxt      = read_source_text(path, new_lineno, old_lineno)
+        source_line = srctxt.source_line
+    except ObsoleteEntry:
+        source_line = old_source_line
 
     catalog_entry = Entry(
         entry_vals['msg_id'],
-        path,
+        entry_vals['path'],
         entry_vals['symbol'],
         entry_vals['message'],
         entry_vals['author'],
@@ -254,7 +264,7 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
         catalog_entry.path,
         catalog_entry.symbol,
         catalog_entry.msg_text,
-        srctxt.text,
+        source_line,
     )
     return (catalog_key, catalog_entry)
 
@@ -359,7 +369,7 @@ def _iter_entry_values(catalog_path: pl.Path) -> typ.Iterable[EntryValues]:
         yield entry_vals
 
 
-DEFAULT_CATALOG_PATH = (pl.Path(".") / "pylint-ignore.md").absolute()
+DEFAULT_CATALOG_PATH = pl.Path(".") / "pylint-ignore.md"
 
 
 def load(catalog_path: pl.Path = DEFAULT_CATALOG_PATH) -> Catalog:
@@ -389,7 +399,7 @@ def load(catalog_path: pl.Path = DEFAULT_CATALOG_PATH) -> Catalog:
 def dumps(catalog: Catalog) -> str:
     seen_paths: typ.Set[str] = set()
     catalog_chunks = [CATALOG_HEADER]
-    entries        = list(catalog.values())
+    entries        = [e for e in catalog.values() if e.srctxt]
     entries.sort(key=lambda e: (e.path, e.srctxt and e.srctxt.new_lineno))
     pwd = pl.Path(".").absolute()
 
