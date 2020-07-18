@@ -133,10 +133,11 @@ def test_read_source_lines():
 
 
 def test_read_source_text():
-    srctxt = catalog.read_source_text(INIT_FILE_PATH, 3)
+    srctxt = catalog.read_source_text(INIT_FILE_PATH, 3, 5)
     assert srctxt.def_line_idx is None
     assert srctxt.def_line     is None
-    assert srctxt.lineno == 3
+    assert srctxt.new_lineno == 3
+    assert srctxt.old_lineno == 5
     expected_text = """
     # This file is part of the pylint-ignore project
     # https://gitlab.com/mbarkhau/pylint-ignore
@@ -163,7 +164,7 @@ TEST_CATALOG_TEXT = """
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 96 - R0902 (too-many-instance-attributes)
+### Line 101 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -171,15 +172,15 @@ TEST_CATALOG_TEXT = """
 
 
 ```
-  92:
-  93:
-> 94: class PylintIgnoreDecorator:
-  95:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
-  96:     #   pattern, rather than the typical usage in python which is about function
+   99:
+  100:
+> 101: class PylintIgnoreDecorator:
+  102:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+  103:     #   pattern, rather than the typical usage in python which is about function
 ```
 
 
-### Line 160 - W0511 (fixme)
+### Line 165 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -240,13 +241,13 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_values = [
         {
             'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "96",
+            'lineno': "101",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
         },
         {
             'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno' : "160",
+            'lineno' : "165",
             'msg_id' : "W0511",
             'symbol' : "fixme",
             'ignored': "because time constraints",
@@ -304,7 +305,8 @@ def test_load(tmp_ignorefile):
     assert entries[1].symbol   == "fixme"
     assert entries[1].msg_text == _todo_text
 
-    assert entries[1].srctxt.lineno == 160
+    assert entries[1].srctxt.old_lineno == 165
+    assert entries[1].srctxt.new_lineno == 165
     assert entries[1].ignored       == "because time constraints"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
@@ -334,4 +336,14 @@ def test_dump(tmp_ignorefile):
     assert catalog_text.startswith(catalog.CATALOG_HEADER)
 
     _out_catalog = catalog.load(out_file)
+    assert len(_in_catalog) == len(_out_catalog)
+
+    if _in_catalog != _out_catalog:
+        print()
+        _in_entries = _in_catalog.values()
+        _out_entries = _out_catalog.values()
+        for in_entry, out_entry in zip(_in_entries, _out_entries):
+            print(in_entry)
+            print(out_entry)
+
     assert _in_catalog == _out_catalog, "serialization round trip failed"

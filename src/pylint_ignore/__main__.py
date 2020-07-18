@@ -20,8 +20,13 @@ import datetime as dt
 import subprocess as sp
 
 import pathlib2 as pl
+
 import pylint.lint
-from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
+try:
+    from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
+except ImportError:
+    # pylint<2.4>=2.0
+    from pylint.utils import MessagesHandlerMixIn
 
 from . import catalog
 
@@ -207,9 +212,14 @@ class PylintIgnoreDecorator:
 
     def _is_message_enabled_wrapper(self) -> typ.Callable:
         def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
-            srctxt = catalog.read_source_text(linter.current_file, line) if line else None
+            srctxt = catalog.read_source_text(linter.current_file, line, line) if line else None
 
-            for msg_def in linter.msgs_store.get_message_definitions(msgid):
+            if hasattr(linter.msgs_store, 'get_message_definitions'):
+                msg_defs = linter.msgs_store.get_message_definitions(msgid)
+            else:
+                msg_defs = [linter.msgs_store.get_message_definition(msgid)]
+
+            for msg_def in msg_defs:
                 if len(self._cur_msg_args) >= msg_def.msg.count("%"):
                     msg_text = msg_def.msg % tuple(self._cur_msg_args)
                 else:

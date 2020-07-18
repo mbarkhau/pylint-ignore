@@ -8,5 +8,8 @@
 # should see if there is a conda package that suits your needs.
 
 typing;python_version<"3.5"
-pylint>=2.4
+astroid<=2.1.0;python_version<"3.5"
+astroid>2.1.0;python_version>="3.5"
+pylint<=2.4;python_version<"3.5"
+pylint>2.4;python_version>="3.5"
 pathlib2

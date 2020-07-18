@@ -82,7 +82,8 @@ SOURCE_TEXT_RE = re.compile(_SOURCE_TEXT_PATTERN, flags=re.VERBOSE)
 
 class SourceText(typ.NamedTuple):
 
-    lineno      : int
+    new_lineno      : int
+    old_lineno      : int
     text        : str
     start_idx   : int
     end_idx     : int
@@ -169,9 +170,9 @@ def find_source_text_lineno(path: str, old_source_line: str, old_lineno: int) ->
     raise ObsoleteEntry("source text not found")
 
 
-def read_source_text(path: str, lineno: int) -> SourceText:
+def read_source_text(path: str, new_lineno: int, old_lineno: int) -> SourceText:
     lines           = read_source_lines(path)
-    line_idx        = lineno - 1  # lineno starts at 1
+    line_idx        = new_lineno - 1  # lineno starts at 1
     line_indent_lvl = len(lines[line_idx]) - len(lines[line_idx].lstrip())
 
     start_idx = max(0, line_idx - CONTEXT_LINES)
@@ -198,7 +199,7 @@ def read_source_text(path: str, lineno: int) -> SourceText:
 
         maybe_def_idx -= 1
 
-    return SourceText(lineno, src_text, start_idx, end_idx, def_line_idx, def_line)
+    return SourceText(new_lineno, old_lineno, src_text, start_idx, end_idx, def_line_idx, def_line)
 
 
 CATALOG_HEADER = """# Catalog file for `pylint-ignore`
@@ -236,10 +237,7 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
 
     old_lineno = int(entry_vals['lineno'])
     new_lineno = find_source_text_lineno(path, old_source_line, old_lineno)
-    srctxt     = read_source_text(path, new_lineno)
-
-    # preserve old lineno, otherwise the catalog won't be updated
-    srctxt = srctxt._replace(lineno=old_lineno)
+    srctxt     = read_source_text(path, new_lineno, old_lineno)
 
     catalog_entry = Entry(
         entry_vals['msg_id'],
@@ -267,7 +265,7 @@ def _dumps_entry(entry: Entry) -> str:
         lineno       = -1
         ctx_src_text = ""
     else:
-        lineno          = srctxt.lineno
+        lineno          = srctxt.new_lineno
         last_ctx_lineno = srctxt.end_idx + 1
         padding_size    = len(str(last_ctx_lineno))
 
@@ -279,14 +277,14 @@ def _dumps_entry(entry: Entry) -> str:
             def_lineno = def_line_idx + 1
             line       = def_line.rstrip()
             src_lines.append(f"  {def_lineno:>{padding_size}}: {line}")
-            if def_lineno + CONTEXT_LINES < srctxt.lineno:
+            if def_lineno + CONTEXT_LINES < srctxt.new_lineno:
                 src_lines.append("  ...")
 
         for offset, line in enumerate(srctxt.text.splitlines()):
             src_lineno = srctxt.start_idx + offset + 1
             # padded_line is to avoid trailing whitespace
             padded_line = " " + line if line.strip() else ""
-            if srctxt.lineno == src_lineno:
+            if lineno == src_lineno:
                 dumps_line = f"> {src_lineno:>{padding_size}}:{padded_line}"
             else:
                 dumps_line = f"  {src_lineno:>{padding_size}}:{padded_line}"
@@ -392,7 +390,7 @@ def dumps(catalog: Catalog) -> str:
     seen_paths: typ.Set[str] = set()
     catalog_chunks = [CATALOG_HEADER]
     entries        = list(catalog.values())
-    entries.sort(key=lambda e: (e.path, e.srctxt and e.srctxt.lineno))
+    entries.sort(key=lambda e: (e.path, e.srctxt and e.srctxt.new_lineno))
     pwd = pl.Path(".").absolute()
 
     for entry in entries:
