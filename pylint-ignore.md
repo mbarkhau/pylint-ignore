@@ -14,7 +14,7 @@ The reccomended approach to using `pylint-ignore` is:
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 101 - R0902 (too-many-instance-attributes)
+### Line 110 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -22,15 +22,15 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: yes
 
 ```
-   99:
-  100:
-> 101: class PylintIgnoreDecorator:
-  102:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
-  103:     #   pattern, rather than the typical usage in python which is about function
+  108:
+  109:
+> 110: class PylintIgnoreDecorator:
+  111:     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
+  112:     #   pattern, rather than the typical usage in python which is about function
 ```
 
 
-### Line 165 - W0511 (fixme)
+### Line 174 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -38,17 +38,17 @@ The reccomended approach to using `pylint-ignore` is:
 
 
 ```
-  134:     def _parse_args(self, args: typ.Sequence[str]) -> None:
+  143:     def _parse_args(self, args: typ.Sequence[str]) -> None:
   ...
-  163:             arg_i += 1
-  164:
-> 165:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  166:         #   ideal. It would be better if we could use the same config parsing logic
-  167:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  172:             arg_i += 1
+  173:
+> 174:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  175:         #   ideal. It would be better if we could use the same config parsing logic
+  176:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 
-### Line 290 - W0102 (dangerous-default-value)
+### Line 294 - W0102 (dangerous-default-value)
 
 - message: Dangerous default value sys.argv[1:] (builtins.list) as argument
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -56,11 +56,11 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: this is safe, we don't mutate args
 
 ```
-  288:
-  289:
-> 290: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-  291:     dec = PylintIgnoreDecorator(args)
-  292:     try:
+  292:
+  293:
+> 294: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  295:     dec = PylintIgnoreDecorator(args)
+  296:     try:
 ```
 
 

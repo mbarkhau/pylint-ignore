@@ -31,6 +31,14 @@ except ImportError:
     from pylint.utils import MessagesHandlerMixIn
 
 
+def _pylint_msg_defs(linter, msgid: str) -> typ.List:
+    if hasattr(linter.msgs_store, 'get_message_definitions'):
+        return linter.msgs_store.get_message_definitions(msgid)
+    else:
+        # compat for older pylint versions
+        return [linter.msgs_store.get_message_definition(msgid)]
+
+
 # To enable pretty tracebacks:
 #   echo "export ENABLE_RICH_TB=1;" >> ~/.bashrc
 if os.environ.get('ENABLE_RICH_TB') == '1':
@@ -215,12 +223,7 @@ class PylintIgnoreDecorator:
         def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
             srctxt = catalog.read_source_text(linter.current_file, line, line) if line else None
 
-            if hasattr(linter.msgs_store, 'get_message_definitions'):
-                msg_defs = linter.msgs_store.get_message_definitions(msgid)
-            else:
-                msg_defs = [linter.msgs_store.get_message_definition(msgid)]
-
-            for msg_def in msg_defs:
+            for msg_def in _pylint_msg_defs(linter, msgid):
                 if len(self._cur_msg_args) >= msg_def.msg.count("%"):
                     msg_text = msg_def.msg % tuple(self._cur_msg_args)
                 else:
