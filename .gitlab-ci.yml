@@ -20,13 +20,11 @@ unit:
   needs: []
   image: registry.gitlab.com/mbarkhau/pylint-ignore/base
   script:
-    - make lint
-    - make mypy
     - make test
   coverage: '/^(TOTAL|src).*?(\d+\%)$/'
   artifacts:
     paths:
-      - mypycov/
+      - htmlcov/
   allow_failure: false
 
 
