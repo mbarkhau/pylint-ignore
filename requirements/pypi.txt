@@ -8,5 +8,5 @@
 # should see if there is a conda package that suits your needs.
 
 typing;python_version<"3.5"
-pylint
+pylint>=2.4
 pathlib2

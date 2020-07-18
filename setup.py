@@ -41,7 +41,6 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
@@ -90,7 +89,7 @@ setuptools.setup(
         [console_scripts]
         pylint-ignore=pylint_ignore.__main__:main
     """,
-    python_requires=">=2.7",
+    python_requires=">=3.5",
     zip_safe=True,
     classifiers=classifiers,
 )
