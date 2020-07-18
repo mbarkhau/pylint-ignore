@@ -107,7 +107,6 @@ class Key(typ.NamedTuple):
     msg_id     : str
     path       : str
     symbol     : str
-    msg_text   : str
     source_line: str
 
 
@@ -259,13 +258,7 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
         entry_vals.get('ignored'),
         srctxt,
     )
-    catalog_key = Key(
-        catalog_entry.msg_id,
-        catalog_entry.path,
-        catalog_entry.symbol,
-        catalog_entry.msg_text,
-        source_line,
-    )
+    catalog_key = Key(catalog_entry.msg_id, catalog_entry.path, catalog_entry.symbol, source_line)
     return (catalog_key, catalog_entry)
 
 
@@ -400,7 +393,7 @@ def dumps(catalog: Catalog) -> str:
     seen_paths: typ.Set[str] = set()
     catalog_chunks = [CATALOG_HEADER]
     entries        = [e for e in catalog.values() if e.srctxt]
-    entries.sort(key=lambda e: (e.path, e.srctxt and e.srctxt.new_lineno))
+    entries.sort(key=lambda e: (e.path, e.srctxt and e.srctxt.new_lineno, e.msg_text))
     pwd = pl.Path(".").absolute()
 
     for entry in entries:

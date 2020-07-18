@@ -50,7 +50,7 @@ The reccomended approach to using `pylint-ignore` is:
 ```
 
 
-### Line 297 - W0102 (dangerous-default-value)
+### Line 298 - W0102 (dangerous-default-value)
 
 - message: Dangerous default value sys.argv[1:] (builtins.list) as argument
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -59,11 +59,11 @@ The reccomended approach to using `pylint-ignore` is:
 - ignored: this is safe, we don't mutate args, mypy would catch it if we do
 
 ```
-  295:
   296:
-> 297: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-  298:     dec = PylintIgnoreDecorator(args)
-  299:     try:
+  297:
+> 298: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+  299:     dec = PylintIgnoreDecorator(args)
+  300:     try:
 ```
 
 

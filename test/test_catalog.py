@@ -302,10 +302,9 @@ def test_load(tmp_ignorefile):
 
     _todo_text = "TODO (mb 2020-07-17): This will override any configuration, but it is not"
 
-    assert keys[1].msg_id   == "W0511"
-    assert keys[1].path     == "src/pylint_ignore/__main__.py"
-    assert keys[1].symbol   == "fixme"
-    assert keys[1].msg_text == _todo_text
+    assert keys[1].msg_id == "W0511"
+    assert keys[1].path   == "src/pylint_ignore/__main__.py"
+    assert keys[1].symbol == "fixme"
 
     assert entries[1].msg_id   == "W0511"
     assert entries[1].path     == "src/pylint_ignore/__main__.py"

@@ -181,6 +181,7 @@ class PylintIgnoreDecorator:
         self,
         key      : catalog.Key,
         old_entry: typ.Optional[catalog.Entry],
+        msg_text : str,
         srctxt   : catalog.MaybeSourceText,
     ) -> catalog.Entry:
         ignored     : typ.Optional[str] = None
@@ -196,7 +197,7 @@ class PylintIgnoreDecorator:
             ignored = self.default_ignored
 
         return catalog.Entry(
-            key.msg_id, key.path, key.symbol, key.msg_text, author, date, ignored, srctxt,
+            key.msg_id, key.path, key.symbol, msg_text, author, date, ignored, srctxt,
         )
 
     def is_enabled_entry(
@@ -210,9 +211,9 @@ class PylintIgnoreDecorator:
         pwd         = pl.Path(".").absolute()
         rel_path    = str(pl.Path(path).absolute().relative_to(pwd))
         source_line = srctxt.source_line if srctxt else ""
-        key         = catalog.Key(msg_id, rel_path, symbol, msg_text, source_line)
+        key         = catalog.Key(msg_id, rel_path, symbol, source_line)
         old_entry   = self.old_ignore_catalog.get(key)
-        new_entry   = self._new_entry(key, old_entry, srctxt)
+        new_entry   = self._new_entry(key, old_entry, msg_text, srctxt)
 
         self.new_ignore_catalog[key] = new_entry
 
