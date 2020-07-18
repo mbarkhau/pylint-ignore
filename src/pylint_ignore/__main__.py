@@ -20,15 +20,16 @@ import datetime as dt
 import subprocess as sp
 
 import pathlib2 as pl
-
 import pylint.lint
+
+from . import catalog
+
 try:
     from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
 except ImportError:
     # pylint<2.4>=2.0
     from pylint.utils import MessagesHandlerMixIn
 
-from . import catalog
 
 # To enable pretty tracebacks:
 #   echo "export ENABLE_RICH_TB=1;" >> ~/.bashrc

@@ -82,8 +82,8 @@ SOURCE_TEXT_RE = re.compile(_SOURCE_TEXT_PATTERN, flags=re.VERBOSE)
 
 class SourceText(typ.NamedTuple):
 
-    new_lineno      : int
-    old_lineno      : int
+    new_lineno  : int
+    old_lineno  : int
     text        : str
     start_idx   : int
     end_idx     : int

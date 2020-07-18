@@ -307,7 +307,7 @@ def test_load(tmp_ignorefile):
 
     assert entries[1].srctxt.old_lineno == 165
     assert entries[1].srctxt.new_lineno == 165
-    assert entries[1].ignored       == "because time constraints"
+    assert entries[1].ignored           == "because time constraints"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
     #       so it must come from the source file.
@@ -340,7 +340,7 @@ def test_dump(tmp_ignorefile):
 
     if _in_catalog != _out_catalog:
         print()
-        _in_entries = _in_catalog.values()
+        _in_entries  = _in_catalog.values()
         _out_entries = _out_catalog.values()
         for in_entry, out_entry in zip(_in_entries, _out_entries):
             print(in_entry)
