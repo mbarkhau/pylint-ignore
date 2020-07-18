@@ -164,7 +164,7 @@ TEST_CATALOG_TEXT = """
 
 ## File: src/pylint_ignore/__main__.py
 
-### Line 101 - R0902 (too-many-instance-attributes)
+### Line 110 - R0902 (too-many-instance-attributes)
 
 - message: Too many instance attributes (10/7)
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -180,7 +180,7 @@ TEST_CATALOG_TEXT = """
 ```
 
 
-### Line 165 - W0511 (fixme)
+### Line 174 - W0511 (fixme)
 
 - message: TODO (mb 2020-07-17): This will override any configuration, but it is not
 - author : Manuel Barkhau <mbarkhau@gmail.com>
@@ -241,13 +241,13 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_values = [
         {
             'path'  : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno': "101",
+            'lineno': "110",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
         },
         {
             'path'   : str(tmpdir / "src" / "pylint_ignore" / "__main__.py"),
-            'lineno' : "165",
+            'lineno' : "174",
             'msg_id' : "W0511",
             'symbol' : "fixme",
             'ignored': "because time constraints",
@@ -305,8 +305,8 @@ def test_load(tmp_ignorefile):
     assert entries[1].symbol   == "fixme"
     assert entries[1].msg_text == _todo_text
 
-    assert entries[1].srctxt.old_lineno == 165
-    assert entries[1].srctxt.new_lineno == 165
+    assert entries[1].srctxt.old_lineno == 174
+    assert entries[1].srctxt.new_lineno == 174
     assert entries[1].ignored           == "because time constraints"
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
