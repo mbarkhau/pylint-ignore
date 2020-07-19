@@ -1,3 +1,7 @@
+<p align="center">
+  <img alt="logo" src="https://gitlab.com/mbarkhau/pylint-ignore/-/raw/master/logo_256.png">
+</p>
+
 # [Pylint-Ignore][repo_ref]
 
 More signal, less noise.
