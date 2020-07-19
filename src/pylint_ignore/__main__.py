@@ -22,7 +22,7 @@ import subprocess as sp
 import pathlib2 as pl
 import pylint.lint
 
-from . import catalog
+from . import ignorefile
 
 try:
     from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
@@ -58,6 +58,9 @@ ExitCode = int
 USAGE_ERROR = 32
 
 MaybeLineNo = typ.Optional[int]
+
+
+DEFAULT_IGNOREFILE_PATH = pl.Path(".") / "pylint-ignore.md"
 
 
 def _run(cmd: str) -> str:
@@ -111,43 +114,52 @@ class PylintIgnoreDecorator:
     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
     #   pattern, rather than the typical usage in python which is about function
     #   decorators.
+    # NOTE (mb 2020-07-18): atm. I think splitting this up would only make
+    #   things more complicated.
+    # pylint:disable=too-many-instance-attributes
 
-    old_ignore_catalog      : catalog.Catalog
-    new_ignore_catalog      : catalog.Catalog
-    default_author          : str
-    default_date            : str
-    default_ignored         : str
-    is_ignore_update_enabled: bool
-    pylint_run_args         : typ.List[str]
+    ignorefile_path: pl.Path
+    is_update_mode : bool
+    pylint_run_args: typ.List[str]
 
-    pylint_is_message_enabled: typ.Any
-    pylint_add_message       : typ.Any
+    default_author: str
+    default_date  : str
+
+    old_catalog: ignorefile.Catalog
+    new_catalog: ignorefile.Catalog
+
+    # the original/non-monkey-patched methods of the linter
+    _pylint_is_message_enabled: typ.Any
+    _pylint_add_message       : typ.Any
 
     # This is pylint internal state that we capture in add_message
     # and later use in is_message_enabled
     _cur_msg_args: typ.List[typ.Any]
 
     def __init__(self, args: typ.Sequence[str]) -> None:
-        self.old_ignore_catalog: catalog.Catalog = catalog.load()
-        self.new_ignore_catalog: catalog.Catalog = {}
-        self.default_author  = get_author_name()
-        self.default_date    = dt.datetime.now().isoformat().split(".")[0]
-        self.default_ignored = "no"
+        self.ignorefile_path = DEFAULT_IGNOREFILE_PATH
+        self.is_update_mode  = False
+        self.pylint_run_args = []
+        self._init_from_args(args)
 
-        self.is_ignore_update_enabled = True
-        self.pylint_run_args          = []
-        self._parse_args(args)
+        self.old_catalog: ignorefile.Catalog = ignorefile.load(self.ignorefile_path)
+        self.new_catalog: ignorefile.Catalog = {}
+
+        self.default_author = get_author_name()
+        self.default_date   = dt.datetime.now().isoformat().split(".")[0]
 
         self._cur_msg_args: typ.List[typ.Any] = []
 
-    def _parse_args(self, args: typ.Sequence[str]) -> None:
+    def _init_from_args(self, args: typ.Sequence[str]) -> None:
         arg_i = 0
         while arg_i < len(args):
             arg = args[arg_i]
-            if arg == '--no-ignore-update':
-                self.is_ignore_update_enabled = False
-            elif arg == '--ignore-update':
-                self.is_ignore_update_enabled = True
+            if arg == '--update-ignorefile':
+                self.is_update_mode = True
+            elif arg == '--ignorefile':
+                self.ignorefile_path = pl.Path(args[arg_i + 1])
+            elif arg.startswith("--ignorefile="):
+                self.ignorefile_path = pl.Path(arg.split("=", 1)[-1])
             elif arg.startswith("--jobs") or arg.startswith("-j"):
                 # NOTE (mb 2020-07-17): Use of the --jobs parameter is prohibited
                 #   because we capture and process the messages in the same
@@ -171,6 +183,10 @@ class PylintIgnoreDecorator:
 
             arg_i += 1
 
+        if not self.ignorefile_path.exists() and not self.is_update_mode:
+            sys.stderr.write(f"Invalid path, does not exist: {self.ignorefile_path}\n")
+            raise SystemExit(USAGE_ERROR)
+
         # TODO (mb 2020-07-17): This will override any configuration, but it is not
         #   ideal. It would be better if we could use the same config parsing logic
         #   as pylint and raise an error if anything other than jobs=1 is configured
@@ -179,29 +195,29 @@ class PylintIgnoreDecorator:
 
     def _new_entry(
         self,
-        key      : catalog.Key,
-        old_entry: typ.Optional[catalog.Entry],
+        key      : ignorefile.Key,
+        old_entry: typ.Optional[ignorefile.Entry],
         msg_text : str,
-        srctxt   : catalog.MaybeSourceText,
-    ) -> catalog.Entry:
-        ignored     : typ.Optional[str] = None
+        srctxt   : ignorefile.MaybeSourceText,
+    ) -> ignorefile.Entry:
         if old_entry:
             # NOTE (mb 2020-07-02): We don't use the lineno from
             #       the old_entry because it may have changed.
-            author  = old_entry.author
-            date    = old_entry.date
-            ignored = old_entry.ignored
+            author = old_entry.author
+            date   = old_entry.date
         else:
-            author  = self.default_author
-            date    = self.default_date
-            ignored = self.default_ignored
+            author = self.default_author
+            date   = self.default_date
 
-        return catalog.Entry(
-            key.msg_id, key.path, key.symbol, msg_text, author, date, ignored, srctxt,
-        )
+        return ignorefile.Entry(key.msg_id, key.path, key.symbol, msg_text, author, date, srctxt,)
 
     def is_enabled_entry(
-        self, msg_id: str, path: str, symbol: str, msg_text: str, srctxt: catalog.MaybeSourceText,
+        self,
+        msg_id  : str,
+        path    : str,
+        symbol  : str,
+        msg_text: str,
+        srctxt  : ignorefile.MaybeSourceText,
     ) -> bool:
         """Return false if message is in the serialized catalog.
 
@@ -211,21 +227,17 @@ class PylintIgnoreDecorator:
         pwd         = pl.Path(".").absolute()
         rel_path    = str(pl.Path(path).absolute().relative_to(pwd))
         source_line = srctxt.source_line if srctxt else ""
-        key         = catalog.Key(msg_id, rel_path, symbol, source_line)
-        old_entry   = self.old_ignore_catalog.get(key)
+        key         = ignorefile.Key(msg_id, rel_path, symbol, msg_text, source_line)
+        old_entry   = ignorefile.find_entry(self.old_catalog, key)
         new_entry   = self._new_entry(key, old_entry, msg_text, srctxt)
 
-        self.new_ignore_catalog[key] = new_entry
-
-        if old_entry:
-            _ignored_str = (old_entry.ignored or "").lower().strip()
-            return _ignored_str in ("no", "n")
-        else:
-            return True
+        self.new_catalog[key] = new_entry
+        is_ignored = old_entry is not None or self.is_update_mode
+        return not is_ignored
 
     def _is_message_enabled_wrapper(self) -> typ.Callable:
         def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
-            srctxt = catalog.read_source_text(linter.current_file, line, line) if line else None
+            srctxt = ignorefile.read_source_text(linter.current_file, line, line) if line else None
 
             for msg_def in _pylint_msg_defs(linter, msgid):
                 if len(self._cur_msg_args) >= msg_def.msg.count("%"):
@@ -244,7 +256,7 @@ class PylintIgnoreDecorator:
         def is_message_enabled(
             linter, msg_descr: str, line: MaybeLineNo = None, confidence: typ.Any = None,
         ) -> bool:
-            is_enabled = self.pylint_is_message_enabled(linter, msg_descr, line, confidence)
+            is_enabled = self._pylint_is_message_enabled(linter, msg_descr, line, confidence)
             if not is_enabled:
                 return False
 
@@ -276,7 +288,7 @@ class PylintIgnoreDecorator:
                 self._cur_msg_args.extend(args)
             elif isinstance(args, (bytes, str)):
                 self._cur_msg_args.append(args)
-            self.pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
+            self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
 
         return add_message
 
@@ -284,18 +296,20 @@ class PylintIgnoreDecorator:
         # NOTE (mb 2020-06-29): This is the easiest place to hook into that I've
         #   found. Though I'm not quite sure why msg_descr that is a code would
         #   imply that it's a candidate to generate output and otherwise not.
-        self.pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
-        self.pylint_add_message        = MessagesHandlerMixIn.add_message
+        self._pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
+        self._pylint_add_message        = MessagesHandlerMixIn.add_message
 
         MessagesHandlerMixIn.is_message_enabled = self._is_message_enabled_wrapper()
         MessagesHandlerMixIn.add_message        = self._add_message_wrapper()
 
     def monkey_unpatch_pylint(self) -> None:
-        MessagesHandlerMixIn.is_message_enabled = self.pylint_is_message_enabled
-        MessagesHandlerMixIn.add_message        = self.pylint_add_message
+        MessagesHandlerMixIn.is_message_enabled = self._pylint_is_message_enabled
+        MessagesHandlerMixIn.add_message        = self._pylint_add_message
 
 
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+    # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
+    # pylint:disable=dangerous-default-value
     dec = PylintIgnoreDecorator(args)
     try:
         dec.monkey_patch_pylint()
@@ -308,9 +322,9 @@ def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
         except KeyboardInterrupt:
             return 1
 
-        is_catalog_dirty = dec.old_ignore_catalog != dec.new_ignore_catalog
-        if is_catalog_dirty and dec.is_ignore_update_enabled:
-            catalog.dump(dec.new_ignore_catalog)
+        is_catalog_dirty = dec.old_catalog != dec.new_catalog
+        if is_catalog_dirty and dec.is_update_mode:
+            ignorefile.dump(dec.new_catalog, dec.ignorefile_path)
     finally:
         dec.monkey_unpatch_pylint()
 

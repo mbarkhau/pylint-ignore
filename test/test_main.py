@@ -38,8 +38,7 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
 
     stat_before = ignore_file.stat()
 
-    args     = ["--rcfile=setup.cfg", "--score=no", "--no-ignore-update", "src/pylint_ignore/"]
-    exitcode = main(args)
+    exitcode = main(["--rcfile=setup.cfg", "--score=no", "src/pylint_ignore/"])
     assert exitcode == 0
 
     stat_after = ignore_file.stat()
@@ -58,8 +57,9 @@ def test_selftest_ignore_update_noop(ignore_file, capsys):
 
     stat_before = ignore_file.stat()
 
-    args     = ["--rcfile=setup.cfg", "--score=no", "src/pylint_ignore/"]
-    exitcode = main(args)
+    exitcode = main(
+        ["--rcfile=setup.cfg", "--update-ignorefile", "--score=no", "src/pylint_ignore/"]
+    )
     assert exitcode == 0
 
     stat_after = ignore_file.stat()

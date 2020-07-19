@@ -1,6 +1,6 @@
 # [Pylint-Ignore][repo_ref]
 
-Reduce Pylint noise. Triage messages. Ignore false positives.
+More signal, less noise.
 
 Project/Repo:
 
@@ -35,157 +35,146 @@ Code Quality/CI:
 [](TOC)
 
 
-## Dealing with Messages, Case by Case
+## Developer Ergonomics
 
-There is a reason flake8 is used so much more often than pylint. The ergonomics of pylint are not ideal. The problem of "noise" is acknowledged [early in the documentation](http://pylint.pycqa.org/en/stable/tutorial.html) of pylint. In fact, the frustration of using pylint is so obvious that it is even the topic of the projects tagline: "It's not just a linter that annoys you!".
+The main issue with `pylint` is developer ergonomics. The messages produced by `pylint` can be valuable, but you have to put in some work before you can enable it in your CI setup. If you have an established codebase, you'll probably have to research its configuration options, disable many invalid messages and/or blindly litter your code with `pylint:disable` comments.
 
-If you want to use pylint on an existing codebase and add it to your CI setup, you have a few options:
-
- - Enable it and spend hours or days learning about which messages you should leave enabled and which are useful enough to leave enabled.
- - Spend hours or days fixing your code so that meaningful messages are no longer raised.
- - Disable almost everything so that it becomes practically useless and then opt-in to individual messages some time later™. This is the approach recomended at [pythonspeed.com](https://pythonspeed.com/articles/pylint/).
-
-This is a bit facetious, but not by much. In any case you will either have to invest time or you risk ignoring meaningful messages. Wouldn't it be nice if you could at least start to use pylint, so that issues can be cought in any new code you write or update, without having to first clean up this mess that you've inherited?
-
-Well look no further. With `pylint-ignore`, you can create a file that will keep track of all messages you either haven't dealt with yet, or which you want to permantly supress, because they are a false positive. You can check this into your repository and start using pylint in your CI setup, with minimal configuration.
-
-From this point forward, if you deal with new messages as they crop up, you at least won't be making your situation worse. Secondly, you can deal with messages on a case by case basis and learn about best practices at your own pace.
+The goal of `pylint-ignore` is to let you benefit from `pylint` right now, without having to first wade through endless message noise and without having to delay using it because you don't have time to configure every detail.
 
 
-## False Positives
+## How it Works
 
-A further issue with existing ways of using pylint is with false positives, messages that are useful in some cases, and sometimes not. How do you elimitate the noise of false positives without also silencing the true positives, such as this message.
+The `pylint-ignore` command is a thin wrapper around the `pylint` command.
+
+```shell
+$ pip install pylint-ignore
+Installing collected packages: astroid,isort,pylint,pylint-ignore
+...
+Successfully installed pylint-ignore-2020.1004
+```
+
+Assuming you have a minimal configuration such as this [`setup.cfg`](doc/setup.cfg).
+
+
+You can invoke `pylint-ignore` like this:
+
+```shell
+$ pylint-ignore --rcfile=setup.cfg src/
+************* Module src/mymodule.py
+src/mymodule.py:290:0: W0102: Dangerous default value sys.argv[1:] (builtins.list) as argument (dangerous-default-value)
+...
+
+-------------------------------------------------------------------
+Your code has been rated at 9.92/10 (previous run: 10.00/10, -0.08)
+```
+
+The `pylint-ignore` command reads its own configuration file called `pylint-ignore.md`. This file contains messages that should be ignored and it is automatically updated with new entries if you specify the `--update-ignorefile` parameter.
+
+```shell
+$ pylint-ignore --rcfile=setup.cfg src/ --update-ignorefile
+-------------------------------------------------------------------
+Your code has been rated at 10.00/10 (previous run: 9.92/10, +0.08)
+```
+
+The `pylint-ignore.md` will now look something like this:
+
+~~~shell
+$ grep --after-context=15 --max-count=1 "## File" pylint-ignore.md
+
+## File src/mymodule.py - Line 290 - W0102 (dangerous-default-value)
+
+- message: Dangerous default value sys.argv[1:] (builtins.list) as argument
+- author : Manuel Barkhau <mbarkhau@gmail.com>
+- date   : 2020-07-17T21:15:25
+
+```
+  289:
+> 290: def main(args: Sequence[str] = sys.argv[1:]) -> ExitCode:
+  291:     try:
+```
+~~~
+
+The recommended approach to using `pylint-ignore` is:
+
+1. If a message refers to a valid issue, update your code rather than
+   ignoring the message.
+2. If a message should *always* be ignored (globally), then to do so
+   via the usual `pylintrc` or `setup.cfg` files rather than this
+  `pylint-ignore.md` file.
+3. If a message is a false positive, add a comment of this form to your code:
+   `# pylint:disable=<symbol> ; explanation why this is a false positive`
+
+
+In principal these are the same options you have with `pylint` by itself. For this particular case I would prefer option 3.:
 
 ```python
-@pytest.fixture()
-def myfixture():
-    # setup
-    yield value
-    # teardown
-
-
-def test_the_thing(myfixture):
-    ...
+def main(args: Sequence[str] = sys.argv[1:]) -> ExitCode:
+    # pylint:disable=dangerous-default-value; args is not mutated, mypy ensures this
+    try:
 ```
 
-Pylint will complain with the following message:
+With this change, when you run `pylint-ignore --update-ignorefile` again, the entry in `pylint-ignore.md` is removed.
 
-```
-test/test_stuff.py:67:17: W0621: Redefining name 'myfixture'
-    from outer scope (line 61) (redefined-outer-name)
-```
-
-A message that warns me about shadowed names? Sign me up! Unfortunately
-for this case, that's very intentional behaviour. The `myfixture` argument
-is a bit of dependency injection magic by the pytest library that I don't
-want to change. I certainly don't want to turn this warning off globally,
-so maybe I could clutter the code for this particular file with `# pylint:
-disable=redefined-outer-name` comments. Frankly I don't want to, I find it
-distasteful and distracting clutter that doesn't belong in my code.
-
-So what to do? In general I would like to have this warning enabled,
-because I know that there are other (perhaps less intelligent) developers
-who might make a mistake that this warning would help to catch. I could
-try and remember to run pylint regularly with this warning enabled again
-and review if any new cases appeard, but I would like to avoid any process that needs a human in the loop who has to pay careful attention.
-
-What I'd really like to do is to tell pylint: "Yes, I understand, I
-know what I'm doing, for this specific case, please leave me alone".
-Preferably in not so many words, and preferably without cluttering up
-my code with `# pylint disable=` comments.
-
-Furthermore, if I disable a message selectively, it might need a short
-text to justify the supression, because the next developer may not see why
-this is a false positive and either introduce a bug while refactoring, or
-waste time to figure out for themselves why it is a false positive. If
-they disagree with the justification, they are free of course to proceed
-with refactoring anyway.
-
-There is a step by step approach you can and should take, even before you consider using pylint-ignore.
-
-1. If you are running `pylint` for the first time, it is a good idea to run `pylint --errors-only`. The chance of false positives for this mode is very much reduced, and you should fix any error messages detected by pylint
-2. If you are running `pylint` for the second time, try to get into the mindset of a pupil. Other developers have tried to determine what patterns in your code may be errors, may lead to errors, or may be expressed in a way that is more clear. You are free to take these messages under advisement, but consider how you would justify your own approach
-1. run `pylint` and  every message it generates
-2. if you are sure a message is always a false positive, add it to the list of globally disabled messages. You may for example want to disable bad-continuation
+What does this solve?
 
 
-Another example: implementing an function that conforms to an api, but doesn't use all of its arguments will cause `W0613 (unused-argument)`
+## Problem1: Setup Cost
 
+If you have a large existing project, your codebase will enevitabely trigger many linting messages the first time you use `pylint`. You might take a first pass and try to reduce the noise. During this first pass, you will encounter two issues:
 
-## Non-Silanceble messages
+1. You will be overwhelmed at all the configuration options that you will need before you can trust that the output of `pylint` is meaningful.
+2. You will find messages that might be useful in general, but after looking at particular cases, you find that the message is only useful sometimes.
 
-https://github.com/PyCQA/pylint/issues/214
-
-
-## OK/FAIL Workflow
-
-The goal here is to:
-
- - not have to globally ignore potentially useful messages that are safe sometimes, but not always.
- - not have to sprinkle your codebase with `# pylint disable` comments.
- - cause a CI failure if pylint shows any *new* messages that haven't been explicitly ignored.
-
-The key word here is *new*, which of course implies some statefulness.
-
-
-
-The usefulness of a linter is vastly increased when you only have two
-states to consider: OK and FAIL. This vastly reduces cognitive load for
-developers. It allows them to treat errors seriously, rather than ignoring
-messages because they are hidden among all the noise that is too tiresome
-to read again and again.
-
-You can get to OK/FAIL bliss with pylint, if you spend time to configure
-it, such as is suggested by
-
-
-The unfortunate thing about this approach is that it reduces the
-usefulness of pylint in cases where a message is valid only some of
-the time. Take for example this code
+An example of case 1. is perhaps the `missing-function-docstring` message. You know that is going to be way more work than is justified for your project. Even if you could justify the work in principle and agree that the message is valid, if you did enabled it, you may find a pattern like this emerge:
 
 ```python
-def makeExtension(**kwargs)
-    ...
+def get_author_name() -> str:
+    """Gets the author name and returns it as a string."""
 ```
 
-Pylint will complain with the following message:
+In case it isn't obvoius, the above docstring is redundant because it adds no information that isn't already in the function signature. In other words, your collegues are likely to pacify the linter by changing the code in ways that are at best a useless waste of time and at worst they are counterproductive.
+
+
+## Problem2: Time Constraint
+
+As you investigate messages, you will inevitabely run across some that you disagree with, if not in general, then at least for the particular cases you're dealing with. Take for example this message:
 
 ```
-__init__.py:20:0: C0103: Function name "makeExtension"
-    doesn't conform to snake_case naming style (invalid-name)
+R0902 Too many instance attributes (10/7) (too-many-instance-attributes)
 ```
 
-Generally speaking this is a valid warning, but in this particular
-case I am forced to use this function name as it is part of an API
-convention. Presumably I could change the code to something like this:
+Where you put the cutoff for "too-many" is a subjective matter. I would caution against [code-golfing][href_wiki_code_golf] such cases, just to satisfy the linter. It's a good message to have in general, if for no other reason than to wag a finger when somebodie introduces some smelly code. Such a message can be a nudge to investigate further if there are reasonable ways to refactor the code and improve it.
 
-```python
-def _make_extension(**kwargs)
-    ...
+With `pylint-ignore` you have a file in your repository that serves as a reminder of such cases, until you have time to look at them. In the meantime, because any *new messages* generated by `pylint` are not ignored, if any new code is introduced that is similarly smelly, you can catch it in your CI build.
 
-# name that conforms with the Markdown extension API
-# https://python-markdown.github.io/extensions/api/#dot_notation
-makeExtension = _make_extension
+
+## CLI Usage
+
+The `pylint-ignore` ignore command does not have its own help message. The `--help` argument will simply behave exactly the same as `pylint --help`. These are the parameters the `pylint-ignore` supports:
+
+```
+Usage: pylint-ignore [options]
+
+Options:
+  --ignorefile=<FILE>    Path to ignore file [default: pylint-ignore.md]
+  --update-ignorefile    Update the ignorefile, adds new messages,
+                         removes any messages that are no longer
+                         emmitted by pylint (were fixed or disabled)
 ```
 
-That is actually a bit better, now that I think about it, but even so, there's a question of cost benefit. If I encounter these kinds of messages that are not actual errors, it makes me want to not use pylint in a commit hook. Let's see another example, where I'm certainly not going to change the code for pylint.
+Normaly the `pylint-ignore` command will not update the `pylint-ignore.md` file. This is appropriate for
 
+- CI/CD build systems, where you want to report any issues that were newly introduced.
+- Normal development, when you don't want to introduce any new issues.
 
-## Acknowlege and Silence
+If you fix an issue or explicitly disable a message, you can cleanup obsolete entries by adding the `--update-ignorefile` argument.
 
-TODO
+```shell
+$ pylint-ignore --update-ignorefile --ignorefile=etc/pylint-ignore.md \
+    --rc-file=setup.cfg src/ test/
+```
 
-
-## Other Projects
-
-The [`pylint-patcher`](https://pypi.org/project/pylint-patcher/) is an alternate approach to the same problem.
-
-    Individual lint exceptions are stored in a patchfile (.pylint-disable.patch)
-    The patchfile is applied to the source before Pylint is run
-    The patchfile is removed from the source after Pylint completes
-
-The `pylint-ignore` project does not modify your files, but instead it invokes pylint as a subprocess and does postprocessing on the output it generates, ignoring any messages, on a case-by-case basis, that you previously marked to be ignored and which are stored in the `pylint-ignore.cfg` file.
-
+Usually changes in line numbers will be detected and not cause your build to fail, but occasionally a message that was previously tracked may no longer be recognized. This can happen for example after you move some code to a different file. For such cases you may also want to use `--update-ignorefile` (or deal with the actual issue while you're refactoring...).
 
 
 [repo_ref]: https://gitlab.com/mbarkhau/pylint-ignore
@@ -216,3 +205,5 @@ The `pylint-ignore` project does not modify your files, but instead it invokes p
 
 [pyversions_img]: https://img.shields.io/pypi/pyversions/pylint-ignore.svg
 [pyversions_ref]: https://pypi.python.org/pypi/pylint-ignore
+
+[href_wiki_code_golf]: https://en.wikipedia.org/wiki/Code_golf

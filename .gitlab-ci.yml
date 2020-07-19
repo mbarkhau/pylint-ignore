@@ -14,7 +14,7 @@ lint:
   artifacts:
     paths:
       - mypycov/
-      - htmlcov/
+      - testcov/
   allow_failure: false
 
 
@@ -23,7 +23,7 @@ pages:
   script:
     - mkdir -p public/cov
     - mkdir -p public/mypycov
-    - cp -r htmlcov/* public/cov/
+    - cp -r testcov/* public/cov/
     - cp -r mypycov/* public/mypycov/
   artifacts:
     paths:
