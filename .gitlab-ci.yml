@@ -3,7 +3,7 @@ stages:
   - build
 
 
-lint:
+unit:
   stage: test
   image: registry.gitlab.com/mbarkhau/pylint-ignore/base
   script:
@@ -12,9 +12,13 @@ lint:
     - make test
   coverage: '/^(TOTAL|src).*?(\d+\%)$/'
   artifacts:
+    reports:
+      junit:
+        - reports/flake8.xml
+        - reports/pytest.xml
     paths:
-      - mypycov/
-      - testcov/
+      - reports/htmlcov/
+      - reports/mypycov/
   allow_failure: false
 
 
@@ -23,8 +27,8 @@ pages:
   script:
     - mkdir -p public/cov
     - mkdir -p public/mypycov
-    - cp -r testcov/* public/cov/
-    - cp -r mypycov/* public/mypycov/
+    - cp -r reports/htmlcov/* public/cov/
+    - cp -r reports/mypycov/* public/mypycov/
   artifacts:
     paths:
       - public
