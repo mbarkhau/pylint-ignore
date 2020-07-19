@@ -6,7 +6,7 @@ Project/Repo:
 
 [![MIT License][license_img]][license_ref]
 [![Supported Python Versions][pyversions_img]][pyversions_ref]
-[![CalVer 2020.1002][version_img]][version_ref]
+[![CalVer 2020.1003][version_img]][version_ref]
 [![PyPI Version][pypi_img]][pypi_ref]
 [![PyPI Downloads][downloads_img]][downloads_ref]
 
@@ -200,7 +200,7 @@ Usually changes in line numbers will be detected and not cause your build to fai
 [downloads_img]: https://pepy.tech/badge/pylint-ignore/month
 [downloads_ref]: https://pepy.tech/project/pylint-ignore
 
-[version_img]: https://img.shields.io/static/v1.svg?label=CalVer&message=2020.1002&color=blue
+[version_img]: https://img.shields.io/static/v1.svg?label=CalVer&message=2020.1003&color=blue
 [version_ref]: https://pypi.org/project/pycalver/
 
 [pyversions_img]: https://img.shields.io/pypi/pyversions/pylint-ignore.svg
