@@ -19,20 +19,20 @@ The recommended approach to using `pylint-ignore` is:
    `# pylint:disable=<symbol> ; explain why this is a false positive`
 
 
-## File src/pylint_ignore/__main__.py - Line 190 - W0511 (fixme)
+## File src/pylint_ignore/__main__.py - Line 191 - W0511 (fixme)
 
 - `message: TODO (mb 2020-07-17): This will override any configuration, but it is not`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-07-20T22:09:15`
 
 ```
-  153:     def _init_from_args(self, args: typ.Sequence[str]) -> None:
+  154:     def _init_from_args(self, args: typ.Sequence[str]) -> None:
   ...
-  188:             raise SystemExit(USAGE_ERROR)
-  189:
-> 190:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  191:         #   ideal. It would be better if we could use the same config parsing logic
-  192:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  189:             raise SystemExit(USAGE_ERROR)
+  190:
+> 191:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  192:         #   ideal. It would be better if we could use the same config parsing logic
+  193:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 

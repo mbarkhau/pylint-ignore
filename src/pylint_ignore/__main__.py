@@ -17,6 +17,7 @@ import typing as typ
 import getpass
 import logging
 import datetime as dt
+import functools as ft
 import subprocess as sp
 
 import pathlib2 as pl
@@ -235,6 +236,26 @@ class PylintIgnoreDecorator:
         is_ignored = old_entry is not None or self.is_update_mode
         return not is_ignored
 
+    def _add_message_wrapper(self) -> typ.Callable:
+        @ft.wraps(self._pylint_add_message)
+        def add_message(
+            linter,
+            msgid     : str,
+            line      : MaybeLineNo = None,
+            node      : typ.Any     = None,
+            args      : typ.Optional[typ.Tuple[typ.Any]] = None,
+            confidence: typ.Optional[str] = None,
+            col_offset: typ.Optional[int] = None,
+        ) -> None:
+            del self._cur_msg_args[:]
+            if isinstance(args, tuple):
+                self._cur_msg_args.extend(args)
+            elif isinstance(args, (bytes, str)):
+                self._cur_msg_args.append(args)
+            self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
+
+        return add_message
+
     def _is_message_enabled_wrapper(self) -> typ.Callable:
         def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
             srctxt = ignorefile.read_source_text(linter.current_file, line, line) if line else None
@@ -253,47 +274,29 @@ class PylintIgnoreDecorator:
 
             return True
 
+        @ft.wraps(self._pylint_is_message_enabled)
         def is_message_enabled(
             linter, msg_descr: str, line: MaybeLineNo = None, confidence: typ.Any = None,
         ) -> bool:
-            is_enabled = self._pylint_is_message_enabled(linter, msg_descr, line, confidence)
-            if not is_enabled:
-                return False
-
-            if re.match(r"\w\d{1,5}", msg_descr) is None:
-                return True
-
-            if msg_descr[:1] == "E":
-                return True
-
-            if linter.current_file is None:
-                return True
-
             try:
+                is_enabled = self._pylint_is_message_enabled(linter, msg_descr, line, confidence)
+                if not is_enabled:
+                    return False
+
+                is_always_enabled = (
+                    re.match(r"\w\d{1,5}", msg_descr) is None
+                    or msg_descr[:1] == 'E'
+                    or linter.current_file is None
+                )
+                if is_always_enabled:
+                    return True
+
                 return is_any_message_def_enabled(linter, msg_descr, line)
             finally:
+                # make sure we don't use args for the next message
                 del self._cur_msg_args[:]
 
         return is_message_enabled
-
-    def _add_message_wrapper(self) -> typ.Callable:
-        def add_message(
-            linter,
-            msgid     : str,
-            line      : MaybeLineNo = None,
-            node      : typ.Any     = None,
-            args      : typ.Optional[typ.Tuple[typ.Any]] = None,
-            confidence: typ.Optional[str] = None,
-            col_offset: typ.Optional[int] = None,
-        ) -> None:
-            del self._cur_msg_args[:]
-            if isinstance(args, tuple):
-                self._cur_msg_args.extend(args)
-            elif isinstance(args, (bytes, str)):
-                self._cur_msg_args.append(args)
-            self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
-
-        return add_message
 
     def monkey_patch_pylint(self) -> None:
         # NOTE (mb 2020-06-29): This is the easiest place to hook into that I've

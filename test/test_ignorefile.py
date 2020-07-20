@@ -154,7 +154,7 @@ def test_find_source_text_lineno():
 
 TEST_IGNOREFILE_TEXT = """
 
-## File src/pylint_ignore/__main__.py - Line 100 - R0902 (too-many-instance-attributes)
+## File src/pylint_ignore/__main__.py - Line 101 - R0902 (too-many-instance-attributes)
 
 - `message: Too many instance attributes (10/7)`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
@@ -162,15 +162,15 @@ TEST_IGNOREFILE_TEXT = """
 
 
 ```
-  100:     # prefer name associated with the type of the repo
-  109:     if is_hg_repo and hg_username:
-> 100:         return hg_username
-  111:     if is_git_repo and git_username:
-  112:         return git_username
+   99:     # prefer name associated with the type of the repo
+  100:     if is_hg_repo and hg_username:
+> 101:         return hg_username
+  102:     if is_git_repo and git_username:
+  103:         return git_username
 ```
 
 
-## File src/pylint_ignore/__main__.py - Line 190 - W0511 (fixme)
+## File src/pylint_ignore/__main__.py - Line 191 - W0511 (fixme)
 
 - `message: TODO (mb 2020-07-17): This will override any configuration, but it is not`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
@@ -180,11 +180,11 @@ TEST_IGNOREFILE_TEXT = """
 ```
   153:     def _init_from_args(self, args: typ.Sequence[str]) -> None:
   ...
-  188:             raise SystemExit(USAGE_ERROR)
-  189:
-> 190:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  191:         #   ideal. It would be better if we could use the same config parsing logic
-  192:         #   as pylint and raise an error if anything other than jobs=1 is configured
+  189:             raise SystemExit(USAGE_ERROR)
+  190:
+> 191:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
+  192:         #   ideal. It would be better if we could use the same config parsing logic
+  193:         #   as pylint and raise an error if anything other than jobs=1 is configured
 ```
 
 
@@ -228,7 +228,7 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_values = [
         {
             'path'  : "src/pylint_ignore/__main__.py",
-            'lineno': "100",
+            'lineno': "101",
             'msg_id': "R0902",
             'symbol': "too-many-instance-attributes",
             'author': "Manuel Barkhau <mbarkhau@gmail.com>",
@@ -236,7 +236,7 @@ def test_iter_entry_values(tmp_ignorefile):
         },
         {
             'path'  : "src/pylint_ignore/__main__.py",
-            'lineno': "190",
+            'lineno': "191",
             'msg_id': "W0511",
             'symbol': "fixme",
             'author': "Manuel Barkhau <mbarkhau@gmail.com>",
@@ -297,8 +297,8 @@ def test_load(tmp_ignorefile):
     assert entries[1].symbol   == "fixme"
     assert entries[1].msg_text == _todo_text
 
-    assert entries[1].srctxt.old_lineno == 190
-    assert entries[1].srctxt.new_lineno == 190
+    assert entries[1].srctxt.old_lineno == 191
+    assert entries[1].srctxt.new_lineno == 191
 
     # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
     #       so it must come from the source file.
