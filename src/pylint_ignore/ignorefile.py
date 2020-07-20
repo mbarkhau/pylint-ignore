@@ -200,6 +200,9 @@ def read_source_lines(path: str) -> typ.List[str]:
 
 
 def find_source_text_lineno(path: str, old_source_line: str, old_lineno: int) -> int:
+    if not pl.Path(path).exists():
+        raise ObsoleteEntry("file not found")
+
     old_line_idx = old_lineno - 1
     lines        = read_source_lines(path)
 
