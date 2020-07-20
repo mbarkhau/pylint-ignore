@@ -263,6 +263,9 @@ class PylintIgnoreDecorator:
             if re.match(r"\w\d{1,5}", msg_descr) is None:
                 return True
 
+            if msg_descr[:1] == "E":
+                return True
+
             if linter.current_file is None:
                 return True
 

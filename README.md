@@ -80,7 +80,7 @@ $ pylint-ignore --rcfile=setup.cfg src/ --update-ignorefile
 Your code has been rated at 10.00/10 (previous run: 9.92/10, +0.08)
 ```
 
-The `pylint-ignore.md` will now look something like this:
+The original message no longer shows up in the output, and it is instead logged in the `pylint-ignore.md`, which will now look something like this:
 
 ~~~shell
 $ grep --after-context=15 --max-count=1 "## File" pylint-ignore.md
@@ -98,15 +98,15 @@ $ grep --after-context=15 --max-count=1 "## File" pylint-ignore.md
 ```
 ~~~
 
-The recommended approach to using `pylint-ignore` is:
+The exception to this behaviour is with error messages. Any message with the message type `(E) error, for probable bugs in the code` will not be added to the ignore file. These are very likely to point to a bug and should not be swept under the rug. For all other messages, as your time permits, the recommended approach to using `pylint-ignore` is the following:
 
 1. If a message refers to a valid issue, update your code rather than
    ignoring the message.
 2. If a message should *always* be ignored (globally), then to do so
    via the usual `pylintrc` or `setup.cfg` files rather than this
-  `pylint-ignore.md` file.
+   `pylint-ignore.md` file.
 3. If a message is a false positive, add a comment of this form to your code:
-   `# pylint:disable=<symbol> ; explanation why this is a false positive`
+   `# pylint:disable=<symbol> ; explain why this is a false positive`
 
 
 In principal these are the same options you have with `pylint` by itself. For this particular case I would prefer option 3.:
