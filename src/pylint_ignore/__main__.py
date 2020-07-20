@@ -316,13 +316,13 @@ class PylintIgnoreDecorator:
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
     # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
     # pylint:disable=dangerous-default-value
-    dec = PylintIgnoreDecorator(args)
+    exit_code = 1
+    dec       = PylintIgnoreDecorator(args)
     try:
         dec.monkey_patch_pylint()
-
-        exit_code = 0
         try:
             pylint.lint.Run(dec.pylint_run_args)
+            exit_code = 0
         except SystemExit as sysexit:
             exit_code = sysexit.code
         except KeyboardInterrupt:
