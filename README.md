@@ -1,5 +1,7 @@
 <div align="center">
+<p align="center">
   <img alt="logo" src="https://gitlab.com/mbarkhau/pylint-ignore/-/raw/master/logo_256.png">
+</p>
 </div>
 
 # [Pylint-Ignore][repo_ref]
