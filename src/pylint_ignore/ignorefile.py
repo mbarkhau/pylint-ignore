@@ -157,25 +157,19 @@ FUZZY_MATCH_MAX_EDIT_DISTANCE_ABS = 4
 FUZZY_MATCH_MAX_EDIT_DISTANCE_PCT = 20
 
 
-def find_entry(catalog: Catalog, search_key: Key) -> typ.Optional[Entry]:
-    has_exact_match = search_key in catalog
-    if has_exact_match:
-        # exact match
-        return catalog[search_key]
-
-    # try for a fuzzy match
-    candidate_keys = [
-        key
-        for key in catalog.keys()
-        if (
+def _iter_candidate_keys(catalog: Catalog, search_key: Key) -> typ.Iterable[Key]:
+    for key in catalog.keys():
+        is_candidate = (
             search_key.msg_id     == key.msg_id
             and search_key.path   == key.path
             and search_key.symbol == key.symbol
         )
-    ]
+        if is_candidate:
+            yield key
 
-    matches: typ.List[Entry] = []
-    for key in candidate_keys:
+
+def _iter_fuzzy_entries(catalog: Catalog, search_key: Key) -> typ.Iterable[Entry]:
+    for key in _iter_candidate_keys(catalog, search_key):
         msg_text_dist = pylev.levenshtein(key.msg_text   , search_key.msg_text)
         src_line_dist = pylev.levenshtein(key.source_line, search_key.source_line)
 
@@ -194,8 +188,17 @@ def find_entry(catalog: Catalog, search_key: Key) -> typ.Optional[Entry]:
         if src_line_dist_pct > FUZZY_MATCH_MAX_EDIT_DISTANCE_PCT:
             continue
 
-        matches.append(catalog[key])
+        yield catalog[key]
 
+
+def find_entry(catalog: Catalog, search_key: Key) -> typ.Optional[Entry]:
+    has_exact_match = search_key in catalog
+    if has_exact_match:
+        # exact match
+        return catalog[search_key]
+
+    # try for a fuzzy match
+    matches = list(_iter_fuzzy_entries(catalog, search_key))
     if len(matches) == 1:
         return matches[0]
     else:
