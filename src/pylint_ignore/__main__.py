@@ -15,6 +15,7 @@ import re
 import sys
 import typing as typ
 import getpass
+import hashlib
 import logging
 import datetime as dt
 import functools as ft
@@ -135,7 +136,8 @@ class PylintIgnoreDecorator:
 
     # This is pylint internal state that we capture in add_message
     # and later use in is_message_enabled
-    _cur_msg_args: typ.List[typ.Any]
+    _last_added_msgid: typ.Optional[str]
+    _cur_msg_args    : typ.List[typ.Any]
 
     def __init__(self, args: typ.Sequence[str]) -> None:
         self.ignorefile_path = DEFAULT_IGNOREFILE_PATH
@@ -149,36 +151,39 @@ class PylintIgnoreDecorator:
         self.default_author = get_author_name()
         self.default_date   = dt.datetime.now().isoformat().split(".")[0]
 
+        self._last_added_msgid = None
         self._cur_msg_args: typ.List[typ.Any] = []
 
     def _init_from_args(self, args: typ.Sequence[str]) -> None:
-        arg_i = 0
+        has_jobs_arg = False
+        arg_i        = 0
         while arg_i < len(args):
             arg = args[arg_i]
             if arg == '--update-ignorefile':
                 self.is_update_mode = True
             elif arg == '--ignorefile':
                 self.ignorefile_path = pl.Path(args[arg_i + 1])
+                arg_i += 1
             elif arg.startswith("--ignorefile="):
                 self.ignorefile_path = pl.Path(arg.split("=", 1)[-1])
             elif arg.startswith("--jobs") or arg.startswith("-j"):
-                # NOTE (mb 2020-07-17): Use of the --jobs parameter is prohibited
-                #   because we capture and process the messages in the same
-                #   proccess. There would need to be some kind of synchronisation to
-                #   merge the catalogs of multiple processes if this were to work.
+                has_jobs_arg = True
+                # NOTE (mb 2020-07-17): Only --jobs=1 is allowed because we
+                #   capture and process the messages in the same proccess. There
+                #   would need to be some kind of communication/synchronisation to
+                #   capture messages from multiple processes to get this to work.
+
+                num_jobs = arg.split("=", 1)[-1] if "=" in args else args[arg_i + 1]
+
+                if num_jobs == '1':
+                    continue
 
                 if "=" in arg:
-                    num_jobs = arg.split("=", 1)[-1]
+                    sys.stderr.write(f"Invalid argument {arg}\n")
                 else:
-                    num_jobs = args[arg_i + 1]
-
-                if num_jobs != '1':
-                    if "=" in arg:
-                        sys.stderr.write(f"Invalid argument {arg}\n")
-                    else:
-                        sys.stderr.write(f"Invalid argument {arg} {num_jobs}\n")
-                    sys.stderr.write("    pylint-ignore only works with --jobs=1\n")
-                    raise SystemExit(USAGE_ERROR)
+                    sys.stderr.write(f"Invalid argument {arg} {num_jobs}\n")
+                sys.stderr.write("    pylint-ignore only works with --jobs=1\n")
+                raise SystemExit(USAGE_ERROR)
             else:
                 self.pylint_run_args.append(arg)
 
@@ -188,17 +193,17 @@ class PylintIgnoreDecorator:
             sys.stderr.write(f"Invalid path, does not exist: {self.ignorefile_path}\n")
             raise SystemExit(USAGE_ERROR)
 
-        # TODO (mb 2020-07-17): This will override any configuration, but it is not
-        #   ideal. It would be better if we could use the same config parsing logic
-        #   as pylint and raise an error if anything other than jobs=1 is configured
-        #   there.
-        self.pylint_run_args.insert(0, "--jobs=1")
+        # NOTE (mb 2020-07-25): To override any other config that pylint might use,
+        #   we inject an explicit --jobs=1 argument.
+        if not has_jobs_arg:
+            self.pylint_run_args.insert(0, "--jobs=1")
 
     def _new_entry(
         self,
         key      : ignorefile.Key,
         old_entry: typ.Optional[ignorefile.Entry],
         msg_text : str,
+        msg_extra: str,
         srctxt   : ignorefile.MaybeSourceText,
     ) -> ignorefile.Entry:
         if old_entry:
@@ -210,31 +215,52 @@ class PylintIgnoreDecorator:
             author = self.default_author
             date   = self.default_date
 
-        return ignorefile.Entry(key.msg_id, key.path, key.symbol, msg_text, author, date, srctxt,)
+        return ignorefile.Entry(
+            key.msgid, key.path, key.symbol, msg_text, msg_extra, author, date, srctxt
+        )
 
     def is_enabled_entry(
         self,
-        msg_id  : str,
-        path    : str,
-        symbol  : str,
-        msg_text: str,
-        srctxt  : ignorefile.MaybeSourceText,
+        msgid    : str,
+        path     : str,
+        symbol   : str,
+        msg_text : str,
+        msg_extra: str,
+        srctxt   : ignorefile.MaybeSourceText,
     ) -> bool:
         """Return false if message is in the serialized catalog.
 
         Side effect: Track new entries for serialization.
         """
 
-        pwd         = pl.Path(".").absolute()
-        rel_path    = str(pl.Path(path).absolute().relative_to(pwd))
-        source_line = srctxt.source_line if srctxt else ""
-        key         = ignorefile.Key(msg_id, rel_path, symbol, msg_text, source_line)
-        old_entry   = ignorefile.find_entry(self.old_catalog, key)
-        new_entry   = self._new_entry(key, old_entry, msg_text, srctxt)
+        pwd      = pl.Path(".").absolute()
+        rel_path = str(pl.Path(path).absolute().relative_to(pwd))
+        if srctxt:
+            source_line = srctxt.source_line
+        else:
+            source_line = hashlib.sha1(msg_extra.strip().encode("utf-8")).hexdigest()
+
+        key       = ignorefile.Key(msgid, rel_path, symbol, msg_text, source_line)
+        old_entry = ignorefile.find_entry(self.old_catalog, key)
+        new_entry = self._new_entry(key, old_entry, msg_text, msg_extra, srctxt)
 
         self.new_catalog[key] = new_entry
         is_ignored = old_entry is not None or self.is_update_mode
         return not is_ignored
+
+    def _fmt_msg(self, msg_def: typ.Any) -> typ.Tuple[str, str]:
+        if len(self._cur_msg_args) >= msg_def.msg.count("%"):
+            msg_text = msg_def.msg % tuple(self._cur_msg_args)
+        else:
+            msg_text = msg_def.msg
+
+        if "\n" in msg_text:
+            msg_text_parts = msg_text.split("\n", 1)
+            msg_text       = msg_text_parts[0]
+            msg_extra      = msg_text_parts[1].strip()
+        else:
+            msg_extra = ""
+        return msg_text, msg_extra
 
     def _add_message_wrapper(self) -> typ.Callable:
         @ft.wraps(self._pylint_add_message)
@@ -247,6 +273,7 @@ class PylintIgnoreDecorator:
             confidence: typ.Optional[str] = None,
             col_offset: typ.Optional[int] = None,
         ) -> None:
+            self._last_added_msgid = msgid
             del self._cur_msg_args[:]
             if isinstance(args, tuple):
                 self._cur_msg_args.extend(args)
@@ -259,15 +286,13 @@ class PylintIgnoreDecorator:
     def _is_message_enabled_wrapper(self) -> typ.Callable:
         def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
             srctxt = ignorefile.read_source_text(linter.current_file, line, line) if line else None
-
             for msg_def in _pylint_msg_defs(linter, msgid):
-                if len(self._cur_msg_args) >= msg_def.msg.count("%"):
-                    msg_text = msg_def.msg % tuple(self._cur_msg_args)
-                else:
-                    msg_text = msg_def.msg
+                msg_text, msg_extra = self._fmt_msg(msg_def)
+
+                assert not (msg_extra and srctxt)
 
                 _is_enabled = self.is_enabled_entry(
-                    msgid, linter.current_file, msg_def.symbol, msg_text, srctxt,
+                    msgid, linter.current_file, msg_def.symbol, msg_text, msg_extra, srctxt,
                 )
                 if not _is_enabled:
                     return False
@@ -280,20 +305,25 @@ class PylintIgnoreDecorator:
         ) -> bool:
             try:
                 is_enabled = self._pylint_is_message_enabled(linter, msg_descr, line, confidence)
+                # NOTE (mb 2020-07-24): is_message_enabled is called in two modes
+                #   1. during initilization, to check if a message type is enabled in general
+                #   2. during linting, to check if a particular message is enabled
+                last_msgid = self._last_added_msgid
+                if last_msgid is None:
+                    # called during initialization
+                    return is_enabled
+
                 if not is_enabled:
                     return False
 
-                is_always_enabled = (
-                    re.match(r"\w\d{1,5}", msg_descr) is None
-                    or msg_descr[:1] == 'E'
-                    or linter.current_file is None
-                )
+                is_always_enabled = re.match(r"\w\d{1,5}", msg_descr) is None
                 if is_always_enabled:
                     return True
 
                 return is_any_message_def_enabled(linter, msg_descr, line)
             finally:
                 # make sure we don't use args for the next message
+                self._last_added_msgid = None
                 del self._cur_msg_args[:]
 
         return is_message_enabled

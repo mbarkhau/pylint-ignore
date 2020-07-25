@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint:disable=redefined-outer-name ; pytest.fixture tmp_ignorefile
+# pylint:disable=protected-access ; ok for testing
+
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
@@ -16,10 +19,13 @@ from pylint_ignore import ignorefile
 
 PROJECT_DIR = pl.Path(__file__).parent.parent
 
-INIT_FILE_PATH = str(PROJECT_DIR / "src" / "pylint_ignore" / "__init__.py")
+FIXTURES_DIR = PROJECT_DIR / "fixtures"
+
+FIXTURE_FILE_PATH = str(FIXTURES_DIR / "fixture_1.py")
 
 
 LINE_TEST_CASES = [
+    "## File src/pylint_ignore/ignorefile.py - R0801 (duplicate-code)",
     "## File src/pylint_ignore/__main__.py - Line 91 - R0902 (too-many-instance-attributes)",
     "- ## File src/pylint_ignore/__main__.py - Line 91 - R0902 (too-many-instance-attributes)",
     "- `message: Too many instance attributes (10/7)`",
@@ -33,11 +39,17 @@ def test_regex_entry_header():
     matches       = [m.groupdict() for m in maybe_matches if m]
     expected      = [
         {
+            'path'  : "src/pylint_ignore/ignorefile.py",
+            'lineno': None,
+            'msgid' : "R0801",
+            'symbol': "duplicate-code",
+        },
+        {
             'path'  : "src/pylint_ignore/__main__.py",
             'lineno': "91",
-            'msg_id': "R0902",
+            'msgid' : "R0902",
             'symbol': "too-many-instance-attributes",
-        }
+        },
     ]
     assert matches == expected
 
@@ -106,104 +118,109 @@ def test_regex_source_text_edgecase():
 
 
 def test_read_source_lines():
-    lines = ignorefile.read_source_lines(INIT_FILE_PATH)
+    lines = ignorefile.read_source_lines(FIXTURE_FILE_PATH)
 
     tzero        = time.time()
-    lines_cached = ignorefile.read_source_lines(INIT_FILE_PATH)
+    lines_cached = ignorefile.read_source_lines(FIXTURE_FILE_PATH)
     duration_ms  = (time.time() - tzero) * 1000
 
     assert duration_ms < 1, "access to cached reference should be cheap"
     assert lines is lines_cached
 
-    assert lines[4] == "# SPDX-License-Identifier: MIT\n"
+    assert lines[3] == "def function_redefined():\n"
+    assert lines[6] == "def code_duplication():\n"
 
 
 def test_read_source_text():
-    srctxt = ignorefile.read_source_text(INIT_FILE_PATH, 3, 5)
+    srctxt = ignorefile.read_source_text(FIXTURE_FILE_PATH, 4, 7)
     assert srctxt.def_line_idx is None
     assert srctxt.def_line     is None
-    assert srctxt.new_lineno == 3
-    assert srctxt.old_lineno == 5
+    assert srctxt.new_lineno == 4
+    assert srctxt.old_lineno == 7
     expected_text = """
-    # This file is part of the pylint-ignore project
-    # https://gitlab.com/mbarkhau/pylint-ignore
-    #
-    # Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
-    # SPDX-License-Identifier: MIT
+        return 1
+
+    def function_redefined():
+        return 1
+
     """
-    expected_text = textwrap.dedent(expected_text).lstrip()
-    assert srctxt.text == expected_text
+    expected_text = textwrap.dedent(expected_text).lstrip("\n")
+    assert srctxt.text.startswith(expected_text)
 
 
 def test_find_source_text_lineno():
-    lineno = ignorefile.find_source_text_lineno(
-        INIT_FILE_PATH, "# SPDX-License-Identifier: MIT\n", 5
-    )
-    assert lineno == 5
+    lineno = ignorefile.find_source_text_lineno(FIXTURE_FILE_PATH, "def code_duplication():\n", 1)
+    assert lineno == 7
 
-    lineno = ignorefile.find_source_text_lineno(
-        INIT_FILE_PATH, "# SPDX-License-Identifier: MIT\n", 1
-    )
-    assert lineno == 5
+    lineno = ignorefile.find_source_text_lineno(FIXTURE_FILE_PATH, "def code_duplication():\n", 7)
+    assert lineno == 7
 
-    lineno = ignorefile.find_source_text_lineno(
-        INIT_FILE_PATH, "# SPDX-License-Identifier: MIT\n", 8
-    )
-    assert lineno == 5
+    lineno = ignorefile.find_source_text_lineno(FIXTURE_FILE_PATH, "def code_duplication():\n", 20)
+    assert lineno == 7
 
 
 TEST_IGNOREFILE_TEXT = """
 
-## File src/pylint_ignore/__main__.py - Line 101 - R0902 (too-many-instance-attributes)
+# E0102: function-redefined
 
-- `message: Too many instance attributes (10/7)`
+## File fixtures/fixture_1.py - Line 7 - E0102 (function-redefined)
+
+- `message: function already defined line 1`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-17T09:59:24`
-
+- `date   : 2020-07-25T18:38:31`
 
 ```
-   99:     # prefer name associated with the type of the repo
-  100:     if is_hg_repo and hg_username:
-> 101:         return hg_username
-  102:     if is_git_repo and git_username:
-  103:         return git_username
+  5:     return 1
+  6:
+> 7: def function_redefined():
+  8:     return 1
+  9:
 ```
 
+# E0666: invalid-obsolete
 
-## File src/pylint_ignore/__main__.py - Line 191 - W0511 (fixme)
+## File fixtures/fixture_1.py - Line 10 - E0666 (invalid-obsolete)
 
-- `message: TODO (mb 2020-07-17): This will override any configuration, but it is not`
+- `message: Undefined variable 'Entry'`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-17T11:39:54`
-
+- `date   : 2020-07-25T18:38:32`
 
 ```
-  153:     def _init_from_args(self, args: typ.Sequence[str]) -> None:
+   7: def code_duplication():
   ...
-  189:             raise SystemExit(USAGE_ERROR)
-  190:
-> 191:         # TODO (mb 2020-07-17): This will override any configuration, but it is not
-  192:         #   ideal. It would be better if we could use the same config parsing logic
-  193:         #   as pylint and raise an error if anything other than jobs=1 is configured
+   8:     msg_id_count = {}
+   9:
+> 10:     def _obsolete_code(e: Obsolete):
+  11:         frequency = -msg_id_count[e.msg_id]
+  12:         return frequency, e.msg_id
 ```
 
+# R0801: duplicate-code
 
-## File src/pylint_ignore/__main__.py - Line 303 - C0415 (import-outside-toplevel)
+## File fixtures/fixture_2.py - R0801 (duplicate-code)
 
-- `message: Import outside toplevel (pylint.lint)`
+- `message: Similar lines in 2 files`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-17T10:50:36`
+- `date   : 2020-07-25T18:38:33`
 
 ```
-  295: def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-  ...
-  301:         try:
-  302:             # We don't want to load this code before the monkey patching is done.
-> 303:             import pylint.lint
-  304:
-  305:             pylint.lint.Run(dec.pylint_run_args)
-```
+==fixture_1:0
+==fixture_2:0
+def function_redefined():
+    return 1
 
+def function_redefined():
+    return 1
+
+def code_duplication():
+    msg_id_count = {}
+
+    def _entry_sort_key(e: Entry):
+        frequency = -msg_id_count[e.msg_id]
+        return frequency, e.msg_id
+
+    return sorted(entries, key=_entry_sort_key)
+```
 
 """
 
@@ -214,7 +231,7 @@ def tmp_ignorefile(tmpdir):
     #       If this becomes an issue, we'll have to create some dedicated fixtures.
     os.chdir(str(tmpdir))
 
-    shutil.copytree(str(PROJECT_DIR / "src"), str(tmpdir / "src"))
+    shutil.copytree(str(FIXTURES_DIR), str(tmpdir / "fixtures"))
     tmpfile = pl.Path(str(tmpdir / "pylint-ignore.md"))
     with tmpfile.open(mode="w", encoding="utf-8") as fobj:
         fobj.write(TEST_IGNOREFILE_TEXT)
@@ -227,28 +244,28 @@ def test_iter_entry_values(tmp_ignorefile):
 
     expected_values = [
         {
-            'path'  : "src/pylint_ignore/__main__.py",
-            'lineno': "101",
-            'msg_id': "R0902",
-            'symbol': "too-many-instance-attributes",
+            'path'  : "fixtures/fixture_1.py",
+            'lineno': "7",
+            'msgid' : "E0102",
+            'symbol': "function-redefined",
             'author': "Manuel Barkhau <mbarkhau@gmail.com>",
-            'date'  : "2020-07-17T09:59:24",
+            'date'  : "2020-07-25T18:38:31",
         },
         {
-            'path'  : "src/pylint_ignore/__main__.py",
-            'lineno': "191",
-            'msg_id': "W0511",
-            'symbol': "fixme",
+            'path'  : "fixtures/fixture_1.py",
+            'lineno': "10",
+            'msgid' : "E0666",
+            'symbol': "invalid-obsolete",
             'author': "Manuel Barkhau <mbarkhau@gmail.com>",
-            'date'  : "2020-07-17T11:39:54",
+            'date'  : "2020-07-25T18:38:32",
         },
         {
-            'path'  : "src/pylint_ignore/__main__.py",
-            'lineno': "303",
-            'msg_id': "C0415",
-            'symbol': "import-outside-toplevel",
+            'path'  : "fixtures/fixture_2.py",
+            'lineno': None,
+            'msgid' : "R0801",
+            'symbol': "duplicate-code",
             'author': "Manuel Barkhau <mbarkhau@gmail.com>",
-            'date'  : "2020-07-17T10:50:36",
+            'date'  : "2020-07-25T18:38:33",
         },
     ]
 
@@ -257,7 +274,7 @@ def test_iter_entry_values(tmp_ignorefile):
     expected_keys = {
         'path',
         'lineno',
-        'msg_id',
+        'msgid',
         'symbol',
         'message',
         'author',
@@ -286,27 +303,21 @@ def test_load(tmp_ignorefile):
     keys    = list(_catalog.keys())
     entries = list(_catalog.values())
 
-    _todo_text = "TODO (mb 2020-07-17): This will override any configuration, but it is not"
+    assert keys[0].msgid       == "E0102"
+    assert keys[0].path        == "fixtures/fixture_1.py"
+    assert keys[0].symbol      == "function-redefined"
+    assert keys[0].msg_text    == "function already defined line 1"
+    assert keys[0].source_line == "def function_redefined():\n"
 
-    assert keys[1].msg_id == "W0511"
-    assert keys[1].path   == "src/pylint_ignore/__main__.py"
-    assert keys[1].symbol == "fixme"
+    assert entries[0].msgid    == "E0102"
+    assert entries[0].path     == "fixtures/fixture_1.py"
+    assert entries[0].symbol   == "function-redefined"
+    assert entries[0].msg_text == "function already defined line 1"
 
-    assert entries[1].msg_id   == "W0511"
-    assert entries[1].path     == "src/pylint_ignore/__main__.py"
-    assert entries[1].symbol   == "fixme"
-    assert entries[1].msg_text == _todo_text
+    assert entries[0].srctxt.old_lineno == 7
+    assert entries[0].srctxt.new_lineno == 4
 
-    assert entries[1].srctxt.old_lineno == 191
-    assert entries[1].srctxt.new_lineno == 191
-
-    # NOTE (mb 2020-07-17): This is different than what's in the ignorefile,
-    #       so it must come from the source file.
-    expected_source_line = """
-        # TODO (mb 2020-07-17): This will override any configuration, but it is not
-    """
-    expected_source_line = expected_source_line.lstrip("\n").rstrip(" ")
-    assert keys[1].source_line == expected_source_line
+    assert entries[1].srctxt is None
 
 
 def test_dump(tmp_ignorefile):
@@ -324,13 +335,12 @@ def test_dump(tmp_ignorefile):
     assert catalog_text.startswith(ignorefile.IGNOREFILE_HEADER)
 
     out_catalog = ignorefile.load(out_file)
-    # NOTE (mb 2020-07-18): The C0415 entry was removed
-    assert len(out_catalog) == 2
+    assert len(out_catalog) == 3
 
     in_entries  = list(in_catalog.values())[:2]
     out_entries = list(out_catalog.values())[:2]
     for in_entry, out_entry in zip(in_entries, out_entries):
-        assert in_entry.msg_id   == out_entry.msg_id
+        assert in_entry.msgid    == out_entry.msgid
         assert in_entry.path     == out_entry.path
         assert in_entry.symbol   == out_entry.symbol
         assert in_entry.msg_text == out_entry.msg_text
@@ -341,8 +351,8 @@ def test_dump(tmp_ignorefile):
         if in_entry.srctxt is None and out_entry.srctxt is None:
             continue
 
-        assert in_entry.srctxt.new_lineno   == out_entry.srctxt.new_lineno
-        assert in_entry.srctxt.old_lineno   == out_entry.srctxt.old_lineno
+        assert in_entry.srctxt.new_lineno == out_entry.srctxt.new_lineno
+        # assert in_entry.srctxt.old_lineno   == out_entry.srctxt.old_lineno
         assert in_entry.srctxt.source_line  == out_entry.srctxt.source_line
         assert in_entry.srctxt.text         == out_entry.srctxt.text
         assert in_entry.srctxt.start_idx    == out_entry.srctxt.start_idx

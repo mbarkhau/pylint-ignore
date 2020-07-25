@@ -77,7 +77,7 @@ setuptools.setup(
     url="https://gitlab.com/mbarkhau/pylint-ignore",
     version="2020.1006",
     keywords="pylint ignore noise flake8 pep8 linter",
-    description="More signal, less noise.",
+    description="Start with silence, not with noise. But do start!",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages("src/"),

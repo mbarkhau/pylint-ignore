@@ -6,7 +6,7 @@
 
 # [Pylint-Ignore][repo_ref]
 
-More signal, less noise.
+Start with silence, not with noise. But do start!
 
 Project/Repo:
 
@@ -29,28 +29,17 @@ Code Quality/CI:
 | Manuel Barkhau (mbarkhau@gmail.com) | author/maintainer | 2020-06 | -     |
 
 
-<!--
-  To update the TOC:
-  $ pip install md-toc
-  $ md_toc --in-place README.md gitlab
--->
-
-
-[](TOC)
-
-[](TOC)
-
 
 ## Developer Ergonomics
 
-The main issue with `pylint` is developer ergonomics. The messages produced by `pylint` can be valuable, but you have to put in some work before you can enable it in your CI setup. If you have an established codebase, you'll probably have to research its configuration options, disable many invalid messages and/or blindly litter your code with `pylint:disable` comments.
+The main issue with Pylint is developer ergonomics. The messages produced by Pylint can be valuable, but you have to put in some work before you can enable it in your CI setup. If you have an established code-base, you'll probably have to research its configuration options, disable many invalid messages and/or blindly litter your code with `pylint:disable` comments.
 
-The goal of `pylint-ignore` is to let you benefit from `pylint` right now, without having to first wade through endless message noise and without having to delay using it because you don't have time to configure every detail.
+With `pylint-ignore` you can benefit from Pylint today. You won't have to first wade through endless message noise, won't have to spend time configure it, you won't have to change anything about your code. For any new code that your write, you can benefit from Pylint right away. As for the message noise and your existing code, you can gradually improve your situation, as your time permits.
 
 
 ## How it Works
 
-The `pylint-ignore` command is a thin wrapper around the `pylint` command.
+The `pylint-ignore` command is a thin wrapper around the Pylint command. You can get started with a minimal configuration file such as this [`setup.cfg`](doc/setup.cfg) and running the following commands.
 
 ```shell
 $ pip install pylint-ignore
