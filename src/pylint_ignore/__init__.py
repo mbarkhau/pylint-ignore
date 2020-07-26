@@ -4,4 +4,4 @@
 # Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 
-__version__ = "2020.1006"
+__version__ = "2020.1007"
