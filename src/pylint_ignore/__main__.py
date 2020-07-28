@@ -85,7 +85,7 @@ def _run(cmd: str) -> str:
         output = sp.check_output(cmd_parts)
     except IOError:
         return ""
-    except sp.SubprocessError:
+    except sp.CalledProcessError:
         return ""
 
     return output.strip().decode("utf-8")
