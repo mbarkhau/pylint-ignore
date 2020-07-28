@@ -83,7 +83,7 @@ def _run(cmd: str) -> str:
     cmd_parts = cmd.split()
     try:
         output = sp.check_output(cmd_parts)
-    except FileNotFoundError:
+    except IOError:
         return ""
     except sp.SubprocessError:
         return ""
