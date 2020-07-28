@@ -85,8 +85,6 @@ def _run(cmd: str) -> str:
         output = sp.check_output(cmd_parts)
     except OSError:
         return ""
-    except IOError:
-        return ""
     except sp.CalledProcessError:
         return ""
 

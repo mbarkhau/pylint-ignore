@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=redefined-outer-name ; pytest.fixture ignore_file
+# pylint:disable=protected-access ; ok for testing
 
 from __future__ import division
 from __future__ import print_function
