@@ -279,7 +279,11 @@ class PylintIgnoreDecorator:
                 self._cur_msg_args.extend(args)
             elif isinstance(args, (bytes, str)):
                 self._cur_msg_args.append(args)
-            self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
+            if col_offset is None:
+                self._pylint_add_message(linter, msgid, line, node, args, confidence)
+            else:
+                # compat for pylint 1.9.5
+                self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
 
         return add_message
 
