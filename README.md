@@ -278,6 +278,11 @@ An alternative approach is suggested by [Itamar Turner-Trauring with "Why Pylint
 This is obviously abbreviated, so I encourage you to read his article if selective whitelisting is a better approach for you. For me, this approach suffers from the diligence issue, as it requires you to revisit the configuration at least a few times, keep track of what you've found to be valuable and so you run a higher risk of neglecting it.
 
 
+### Automated disable comments
+
+Another automated approach is to use [pylint-silent](https://pypi.org/project/pylint-silent/). Be sure to use version control if you consider this approach.
+
+
 [repo_ref]: https://gitlab.com/mbarkhau/pylint-ignore
 
 [build_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/pipeline.svg

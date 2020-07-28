@@ -1,6 +1,11 @@
 # Changelog for https://gitlab.com/mbarkhau/pylint-ignore
 
 
+## 2020.1008
+
+ - Fix: compatability with python 2.7 and pylint 1.9.5
+
+
 ## 2020.1007
 
  - Add overview section to `pylint-ignore.md` file.
