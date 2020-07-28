@@ -13,11 +13,28 @@ import shutil
 import pytest
 import pathlib2 as pl
 
-from pylint_ignore.__main__ import main
+import pylint_ignore.__main__ as main
 
 PROJECT_DIR = pl.Path(__file__).parent.parent
 
 FIXTURES_DIR = PROJECT_DIR / "fixtures"
+
+
+def test_get_author_name():
+    author_name = main.get_author_name()
+    assert len(author_name) > 0
+
+    # NOTE (mb 2020-07-28): provoke error
+    main._HG_USERNAME_CMD = "invalid-command --help"
+
+    author_name = main.get_author_name()
+    assert len(author_name) > 0
+
+    # NOTE (mb 2020-07-28): provoke error
+    main._HG_USERNAME_CMD = "exit 1"
+
+    author_name = main.get_author_name()
+    assert len(author_name) > 0
 
 
 @pytest.fixture()
@@ -49,7 +66,7 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
         "--ignorefile",
         "fixtures/pylint-ignore.md",
     ]
-    exitcode = main(args)
+    exitcode = main.main(args)
     assert exitcode == 0
 
     stat_after = ignore_file.stat()
@@ -75,7 +92,7 @@ def test_selftest_ignore_update_noop(ignore_file, capsys):
         "--ignorefile=fixtures/pylint-ignore.md",
         "--update-ignorefile",
     ]
-    exitcode = main(args)
+    exitcode = main.main(args)
     assert exitcode == 0
 
     captured = capsys.readouterr()

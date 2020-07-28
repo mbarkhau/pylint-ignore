@@ -91,9 +91,12 @@ def _run(cmd: str) -> str:
     return output.strip().decode("utf-8")
 
 
+_HG_USERNAME_CMD = "hg config ui.username"
+
+
 def get_author_name() -> str:
     """Do a best effort to get a meaningful author name."""
-    hg_username = _run("hg config ui.username")
+    hg_username = _run(_HG_USERNAME_CMD)
     git_email   = _run("git config user.email")
     git_name    = _run("git config user.name")
 
