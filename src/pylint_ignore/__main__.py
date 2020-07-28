@@ -83,6 +83,8 @@ def _run(cmd: str) -> str:
     cmd_parts = cmd.split()
     try:
         output = sp.check_output(cmd_parts)
+    except OSError:
+        return ""
     except IOError:
         return ""
     except sp.CalledProcessError:
