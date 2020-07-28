@@ -33,12 +33,26 @@ except ImportError:
     from pylint.utils import MessagesHandlerMixIn
 
 
-def _pylint_msg_defs(linter, msgid: str) -> typ.List:
+class MessageDef(typ.NamedTuple):
+
+    msg   : str
+    msgid : str
+    symbol: str
+    scope : str
+    descr : str
+
+    old_names: typ.List[str]
+
+
+def _pylint_msg_defs(linter, msgid: str) -> typ.List[MessageDef]:
     if hasattr(linter.msgs_store, 'get_message_definitions'):
         return linter.msgs_store.get_message_definitions(msgid)
-    else:
+    elif hasattr(linter.msgs_store, 'get_message_definition'):
         # compat for older pylint versions
         return [linter.msgs_store.get_message_definition(msgid)]
+    else:
+        # compat for even older pylint versions
+        return [linter.msgs_store.check_message_id(msgid)]
 
 
 # To enable pretty tracebacks:
@@ -248,7 +262,7 @@ class PylintIgnoreDecorator:
         is_ignored = old_entry is not None or self.is_update_mode
         return not is_ignored
 
-    def _fmt_msg(self, msg_def: typ.Any) -> typ.Tuple[str, str]:
+    def _fmt_msg(self, msg_def: MessageDef) -> typ.Tuple[str, str]:
         if len(self._cur_msg_args) >= msg_def.msg.count("%"):
             msg_text = msg_def.msg % tuple(self._cur_msg_args)
         else:
