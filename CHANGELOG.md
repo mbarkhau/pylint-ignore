@@ -1,6 +1,11 @@
 # Changelog for https://gitlab.com/mbarkhau/pylint-ignore
 
 
+## 2020.1012
+
+ - Fix: enable use of `--jobs=<n>` with `n > 1`
+
+
 ## 2020.1008 - 2020.1011
 
  - Fix: compatability with python 2.7 and pylint 1.9.5
