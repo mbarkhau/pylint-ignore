@@ -26,7 +26,6 @@ The recommended approach to using `pylint-ignore` is:
  - [E0102: function-redefined (2x)](#e0102-function-redefined)
  - [E0602: undefined-variable (4x)](#e0602-undefined-variable)
  - [C0103: invalid-name (2x)](#c0103-invalid-name)
- - [R0801: duplicate-code (1x)](#r0801-duplicate-code)
 
 
 # E0102: function-redefined
@@ -160,34 +159,6 @@ The recommended approach to using `pylint-ignore` is:
 > 10:     def _entry_sort_key(e: Entry):
   11:         frequency = -msg_id_count[e.msg_id]
   12:         return frequency, e.msg_id
-```
-
-
-# R0801: duplicate-code
-
-## File fixtures/fixture_2.py - R0801 (duplicate-code)
-
-- `message: Similar lines in 2 files`
-- `author : Manuel Barkhau <mbarkhau@gmail.com>`
-- `date   : 2020-07-25T19:23:02`
-
-```
-==fixtures.fixture_1:0
-==fixtures.fixture_2:0
-def function_redefined():
-    return 1
-
-def function_redefined():
-    return 1
-
-def code_duplication():
-    msg_id_count = {}
-
-    def _entry_sort_key(e: Entry):
-        frequency = -msg_id_count[e.msg_id]
-        return frequency, e.msg_id
-
-    return sorted(entries, key=_entry_sort_key)
 ```
 
 

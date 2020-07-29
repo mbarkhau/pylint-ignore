@@ -338,7 +338,7 @@ def _init_entry_item(entry_vals: EntryValues) -> typ.Tuple[Key, Entry]:
     return (ignorefile_key, ignorefile_entry)
 
 
-def _dumps_entry(entry: Entry) -> str:
+def dumps_entry(entry: Entry) -> str:
     srctxt = entry.srctxt
     if srctxt is None:
         lineno = ""
@@ -439,30 +439,6 @@ def _iter_entry_values(ignorefile_path: pl.Path) -> typ.Iterable[EntryValues]:
         yield entry_vals
 
 
-def load(ignorefile_path: pl.Path) -> Catalog:
-    if not ignorefile_path.exists():
-        return {}
-
-    catalog: Catalog = collections.OrderedDict()
-    for entry_vals in _iter_entry_values(ignorefile_path):
-        try:
-            ignorefile_key, ignorefile_entry = _init_entry_item(entry_vals)
-            catalog[ignorefile_key] = ignorefile_entry
-        except ObsoleteEntry:
-            # NOTE (mb 2020-07-17): It is fine for an entry to be obsolete.
-            #   The code may have improved, it may have moved, in any case
-            #   the ignore file is under version control and the change
-            #   will be seen.
-            pass
-        except (KeyError, ValueError) as ex:
-            lineno = entry_vals['ignorefile_lineno']
-            path   = entry_vals['path']
-            logmsg = f"Error parsing entry on line {lineno} of {path}: {ex}"
-            logger.error(logmsg, exc_info=True)
-
-    return catalog
-
-
 MESSAGE_TYPE_PRIORITIES = [
     'F',  # [F]atal for errors which prevented further processing
     'E',  # [E]rror for important programming issues (i.e. most probably bug)
@@ -510,7 +486,7 @@ def dumps(ignorefile: Catalog) -> str:
 
             entry_chunks.append(f"# {entry.msgid}: {entry.symbol}\n\n")
 
-        entry_chunks.append(_dumps_entry(entry))
+        entry_chunks.append(dumps_entry(entry))
 
     overview_chunks.append("\n\n")
 
@@ -525,3 +501,45 @@ def dump(ignorefile: Catalog, ignorefile_path: pl.Path) -> None:
     with tmp_path.open(mode="w", encoding="utf-8") as fobj:
         fobj.write(ignorefile_text)
     shutil.move(str(tmp_path), str(ignorefile_path))
+
+
+def load(ignorefile_path: pl.Path) -> Catalog:
+    if not ignorefile_path.exists():
+        return {}
+
+    catalog: Catalog = collections.OrderedDict()
+    for entry_vals in _iter_entry_values(ignorefile_path):
+        try:
+            ignorefile_key, ignorefile_entry = _init_entry_item(entry_vals)
+            catalog[ignorefile_key] = ignorefile_entry
+        except ObsoleteEntry:
+            # NOTE (mb 2020-07-17): It is fine for an entry to be obsolete.
+            #   The code may have improved, it may have moved, in any case
+            #   the ignore file is under version control and the change
+            #   will be seen.
+            pass
+        except (KeyError, ValueError) as ex:
+            lineno = entry_vals['ignorefile_lineno']
+            path   = entry_vals['path']
+            logmsg = f"Error parsing entry on line {lineno} of {path}: {ex}"
+            logger.error(logmsg, exc_info=True)
+
+    return catalog
+
+
+def load_dir(dirpath: pl.Path) -> Catalog:
+    """Load from multiple files.
+
+    This is used to read from a temporary directory where
+    multiple processes write to concurrently. The files then
+    need to be read back and joined together.
+
+    We don't have to care about sorting here as that is done
+    in the final write
+    """
+    full_catalog: Catalog = {}
+    for fpath in dirpath.glob("*.md"):
+        partial_catalog = load(fpath)
+        full_catalog.update(partial_catalog)
+
+    return full_catalog

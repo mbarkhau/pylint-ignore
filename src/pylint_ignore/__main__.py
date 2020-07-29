@@ -13,11 +13,14 @@ messages if configured via a pylint-ignore.md file.
 import os
 import re
 import sys
+import time
+import shutil
 import typing as typ
 import getpass
 import hashlib
 import logging
 import datetime as dt
+import tempfile
 import functools as ft
 import subprocess as sp
 
@@ -145,7 +148,9 @@ class PylintIgnoreDecorator:
     default_date  : str
 
     old_catalog: ignorefile.Catalog
-    new_catalog: ignorefile.Catalog
+    # New catalog entries are first written to a temporary
+    # directory, which allows us to support the --jobs argument.
+    new_catalog_dir: pl.Path
 
     # the original/non-monkey-patched methods of the linter
     _pylint_is_message_enabled: typ.Any
@@ -162,8 +167,11 @@ class PylintIgnoreDecorator:
         self.pylint_run_args = []
         self._init_from_args(args)
 
-        self.old_catalog: ignorefile.Catalog = ignorefile.load(self.ignorefile_path)
-        self.new_catalog: ignorefile.Catalog = {}
+        self.old_catalog = ignorefile.load(self.ignorefile_path)
+        if self.is_update_mode:
+            self.new_catalog_dir = pl.Path(tempfile.mkdtemp())
+        else:
+            self.new_catalog_dir = pl.Path(tempfile.gettempdir())
 
         self.default_author = get_author_name()
         self.default_date   = dt.datetime.now().isoformat().split(".")[0]
@@ -172,8 +180,7 @@ class PylintIgnoreDecorator:
         self._cur_msg_args: typ.List[typ.Any] = []
 
     def _init_from_args(self, args: typ.Sequence[str]) -> None:
-        has_jobs_arg = False
-        arg_i        = 0
+        arg_i = 0
         while arg_i < len(args):
             arg = args[arg_i]
             if arg == '--update-ignorefile':
@@ -183,24 +190,6 @@ class PylintIgnoreDecorator:
                 arg_i += 1
             elif arg.startswith("--ignorefile="):
                 self.ignorefile_path = pl.Path(arg.split("=", 1)[-1])
-            elif arg.startswith("--jobs") or arg.startswith("-j"):
-                has_jobs_arg = True
-                # NOTE (mb 2020-07-17): Only --jobs=1 is allowed because we
-                #   capture and process the messages in the same proccess. There
-                #   would need to be some kind of communication/synchronisation to
-                #   capture messages from multiple processes to get this to work.
-
-                num_jobs = arg.split("=", 1)[-1] if "=" in args else args[arg_i + 1]
-
-                if num_jobs == '1':
-                    continue
-
-                if "=" in arg:
-                    sys.stderr.write(f"Invalid argument {arg}\n")
-                else:
-                    sys.stderr.write(f"Invalid argument {arg} {num_jobs}\n")
-                sys.stderr.write("    pylint-ignore only works with --jobs=1\n")
-                raise SystemExit(USAGE_ERROR)
             else:
                 self.pylint_run_args.append(arg)
 
@@ -209,11 +198,6 @@ class PylintIgnoreDecorator:
         if not self.ignorefile_path.exists() and not self.is_update_mode:
             sys.stderr.write(f"Invalid path, does not exist: {self.ignorefile_path}\n")
             raise SystemExit(USAGE_ERROR)
-
-        # NOTE (mb 2020-07-25): To override any other config that pylint might use,
-        #   we inject an explicit --jobs=1 argument.
-        if not has_jobs_arg:
-            self.pylint_run_args.insert(0, "--jobs=1")
 
     def _new_entry(
         self,
@@ -235,6 +219,20 @@ class PylintIgnoreDecorator:
         return ignorefile.Entry(
             key.msgid, key.path, key.symbol, msg_text, msg_extra, author, date, srctxt
         )
+
+    def _dump_entry(self, entry: ignorefile.Entry) -> None:
+        if not self.is_update_mode:
+            return
+
+        entry_text = ignorefile.dumps_entry(entry)
+
+        catalog_file = self.new_catalog_dir / f"{os.getpid()}.md"
+        with catalog_file.open(mode="a", encoding="utf-8") as fobj:
+            fobj.write(entry_text)
+
+    def cleanup(self) -> None:
+        assert self.new_catalog_dir != pl.Path(tempfile.gettempdir())
+        shutil.rmtree(str(self.new_catalog_dir))
 
     def is_enabled_entry(
         self,
@@ -260,8 +258,7 @@ class PylintIgnoreDecorator:
         key       = ignorefile.Key(msgid, rel_path, symbol, msg_text, source_line)
         old_entry = ignorefile.find_entry(self.old_catalog, key)
         new_entry = self._new_entry(key, old_entry, msg_text, msg_extra, srctxt)
-
-        self.new_catalog[key] = new_entry
+        self._dump_entry(new_entry)
         is_ignored = old_entry is not None or self.is_update_mode
         return not is_ignored
 
@@ -378,12 +375,17 @@ def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
             exit_code = sysexit.code
         except KeyboardInterrupt:
             return 1
-
-        is_catalog_dirty = dec.old_catalog != dec.new_catalog
-        if is_catalog_dirty and dec.is_update_mode:
-            ignorefile.dump(dec.new_catalog, dec.ignorefile_path)
     finally:
         dec.monkey_unpatch_pylint()
+
+    if dec.is_update_mode:
+        try:
+            new_catalog      = ignorefile.load_dir(dec.new_catalog_dir)
+            is_catalog_dirty = dec.old_catalog != new_catalog
+            if is_catalog_dirty:
+                ignorefile.dump(new_catalog, dec.ignorefile_path)
+        finally:
+            dec.cleanup()
 
     return exit_code
 
