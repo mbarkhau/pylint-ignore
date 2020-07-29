@@ -13,7 +13,6 @@ messages if configured via a pylint-ignore.md file.
 import os
 import re
 import sys
-import time
 import shutil
 import typing as typ
 import getpass
