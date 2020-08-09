@@ -19,7 +19,8 @@ Project/Repo:
 
 Code Quality/CI:
 
-[![Build Status][build_img]][build_ref]
+[![GitHub CI Status][github_build_img]][github_build_ref]
+[![GitLab CI Status][gitlab_build_img]][gitlab_build_ref]
 [![Type Checked with mypy][mypy_img]][mypy_ref]
 [![Code Coverage][codecov_img]][codecov_ref]
 [![Code Style: sjfmt][style_img]][style_ref]
@@ -285,8 +286,11 @@ Another automated approach is to use [pylint-silent](https://pypi.org/project/py
 
 [repo_ref]: https://gitlab.com/mbarkhau/pylint-ignore
 
-[build_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/pipeline.svg
-[build_ref]: https://gitlab.com/mbarkhau/pylint-ignore/pipelines
+[github_build_img]: https://github.com/mbarkhau/pylint-ignore/workflows/CI/badge.svg
+[github_build_ref]: https://github.com/mbarkhau/pylint-ignore/actions?query=workflow%3ACI
+
+[gitlab_build_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/pipeline.svg
+[gitlab_build_ref]: https://gitlab.com/mbarkhau/pylint-ignore/pipelines
 
 [codecov_img]: https://gitlab.com/mbarkhau/pylint-ignore/badges/master/coverage.svg
 [codecov_ref]: https://mbarkhau.gitlab.io/pylint-ignore/cov
