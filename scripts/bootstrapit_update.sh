@@ -9,11 +9,19 @@ BOOTSTRAPIT_GIT_PATH=/tmp/bootstrapit;
 
 echo "Updating from $BOOTSTRAPIT_GIT_URL";
 
+OLD_PWD="$PWD";
+
 if [[ ! -e "$BOOTSTRAPIT_GIT_PATH" ]]; then
     git clone "$BOOTSTRAPIT_GIT_URL" "$BOOTSTRAPIT_GIT_PATH";
 else
-    OLD_PWD="$PWD";
     cd "$BOOTSTRAPIT_GIT_PATH";
+    git pull --quiet;
+    cd "$OLD_PWD";
+fi
+
+if [[ -n "$BOOTSTRAPIT_DEV_BRANCH" ]]; then
+    cd "$BOOTSTRAPIT_GIT_PATH";
+    git checkout "$BOOTSTRAPIT_DEV_BRANCH";
     git pull --quiet;
     cd "$OLD_PWD";
 fi
@@ -22,7 +30,6 @@ BOOTSTRAPIT_DEBUG=0
 
 if [[ $BOOTSTRAPIT_DEBUG == 0 ]]; then
     if [[ -f "$PROJECT_DIR/.git/config" ]]; then
-        OLD_PWD="$PWD"
         cd "$PROJECT_DIR";
         if [[ $( git diff -s --exit-code || echo "$?" ) -gt 0 ]]; then
             echo "ABORTING!: Your repo has local changes which are not comitted."
