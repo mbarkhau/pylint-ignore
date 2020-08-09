@@ -140,6 +140,9 @@ def get_author_name() -> str:
     return getpass.getuser()
 
 
+IS_FORK_METHOD_AVAILABLE = sys.platform != 'win32'
+
+
 class PylintIgnoreDecorator:
     # NOTE (mb 2020-07-17): The term "Decorator" refers to the gang of four
     #   pattern, rather than the typical usage in python which is about function
@@ -199,9 +202,22 @@ class PylintIgnoreDecorator:
             elif arg.startswith("--ignorefile="):
                 self.ignorefile_path = pl.Path(arg.split("=", 1)[-1])
             else:
-                self.pylint_run_args.append(arg)
+                is_jobs_arg = arg.startswith("--jobs") or arg.startswith("-j")
+                if is_jobs_arg and not IS_FORK_METHOD_AVAILABLE:
+                    # ommit --jobs=1 on windows
+                    if "=" not in arg:
+                        # also skip next arg
+                        arg_i += 1
+                else:
+                    self.pylint_run_args.append(arg)
 
             arg_i += 1
+
+        # NOTE (mb 2020-08-09): Override any other config that pylint might use,
+        #   we inject an explicit --jobs=1 argument. This only affects windows,
+        #   which doesn't support 'fork'
+        if not IS_FORK_METHOD_AVAILABLE:
+            self.pylint_run_args.insert(0, "--jobs=1")
 
         if not self.ignorefile_path.exists() and not self.is_update_mode:
             sys.stderr.write(f"Invalid path, does not exist: {self.ignorefile_path}\n")
@@ -374,16 +390,18 @@ def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
     # pylint:disable=dangerous-default-value
     # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
 
-    is_maybe_macos_that_uses_fork_method = (
-        hasattr(mp, 'get_start_method')
+    is_fork_method_setable = (
+        IS_FORK_METHOD_AVAILABLE
+        and hasattr(mp, 'get_start_method')
         and mp.get_start_method(allow_none=True) is None
-        and sys.platform == 'darwin'
     )
     # Method 'fork' is the only thing that works for us,
     #   since we're monkey patching, we need the memory
     #   state to be preserved.
-    if is_maybe_macos_that_uses_fork_method:
-        # NOTE (mb 2020-08-09): Workaround for https://bugs.python.org/issue33725
+    if is_fork_method_setable:
+        # NOTE (mb 2020-08-09): This is actually requred on MacOS,
+        #   on Linux this appears to be the default anyway.
+        #   https://bugs.python.org/issue33725
         mp.set_start_method('fork')
 
     exit_code = 1

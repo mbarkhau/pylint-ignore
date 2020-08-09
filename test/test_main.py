@@ -113,3 +113,7 @@ def test_selftest_ignore_update_noop(ignore_file, capsys):
 
     stat_after = ignore_file.stat()
     assert stat_before.st_mtime == stat_after.st_mtime
+
+
+# TODO (mb 2020-08-09): At least pretend to be on windows and check
+#   the not IS_FORK_METHOD_AVAILABLE codepaths
