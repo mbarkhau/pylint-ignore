@@ -371,17 +371,21 @@ class PylintIgnoreDecorator:
 
 
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+    # pylint:disable=dangerous-default-value
+    # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
+
     is_maybe_macos_that_uses_fork_method = (
         hasattr(mp, 'get_start_method')
         and mp.get_start_method(allow_none=True) is None
         and sys.platform == 'darwin'
     )
+    # Method 'fork' is the only thing that works for us,
+    #   since we're monkey patching, we need the memory
+    #   state to be preserved.
     if is_maybe_macos_that_uses_fork_method:
-        # Workaround for https://bugs.python.org/issue33725
+        # NOTE (mb 2020-08-09): Workaround for https://bugs.python.org/issue33725
         mp.set_start_method('fork')
 
-    # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
-    # pylint:disable=dangerous-default-value
     exit_code = 1
     dec       = PylintIgnoreDecorator(args)
     try:
