@@ -21,6 +21,9 @@ PROJECT_DIR = pl.Path(__file__).parent.parent
 FIXTURES_DIR = PROJECT_DIR / "fixtures"
 
 
+main.TESTDEBUG = True
+
+
 def test_get_author_name():
     author_name = main.get_author_name()
     assert len(author_name) > 0

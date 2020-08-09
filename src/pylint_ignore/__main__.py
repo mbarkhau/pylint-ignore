@@ -46,9 +46,17 @@ class MessageDef(typ.NamedTuple):
     old_names: typ.List[str]
 
 
+TESTDEBUG = False
+
+
 def _pylint_msg_defs(linter, msgid: str) -> typ.List[MessageDef]:
     if hasattr(linter.msgs_store, 'get_message_definitions'):
-        return linter.msgs_store.get_message_definitions(msgid)
+        msg_defs = linter.msgs_store.get_message_definitions(msgid)
+        if TESTDEBUG:
+            assert isinstance(msg_defs, list)
+            assert all(hasattr(m, 'msg'   ) for m in msg_defs)
+            assert all(hasattr(m, 'symbol') for m in msg_defs)
+        return typ.cast(typ.List[MessageDef], msg_defs)
     elif hasattr(linter.msgs_store, 'get_message_definition'):
         # compat for older pylint versions
         return [linter.msgs_store.get_message_definition(msgid)]
@@ -282,12 +290,13 @@ class PylintIgnoreDecorator:
             msgid     : str,
             line      : MaybeLineNo = None,
             node      : typ.Any     = None,
-            args      : typ.Optional[typ.Tuple[typ.Any]] = None,
+            args      : typ.Union[typ.Tuple[typ.Any], str, bytes, None] = None,
             confidence: typ.Optional[str] = None,
             col_offset: typ.Optional[int] = None,
         ) -> None:
             self._last_added_msgid = msgid
             del self._cur_msg_args[:]
+
             if isinstance(args, tuple):
                 self._cur_msg_args.extend(args)
             elif isinstance(args, (bytes, str)):
@@ -328,7 +337,7 @@ class PylintIgnoreDecorator:
                 last_msgid = self._last_added_msgid
                 if last_msgid is None:
                     # called during initialization
-                    return is_enabled
+                    return bool(is_enabled)
 
                 if not is_enabled:
                     return False
