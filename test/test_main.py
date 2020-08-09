@@ -55,10 +55,13 @@ def ignore_file():
     backup_file.unlink()
 
 
-def test_selftest_no_ignore_update(ignore_file, capsys):
-    if sys.version < "3.7":
-        return
+# NOTE (mb 2020-08-09): We skip the assertions on python 2.7
+#   because the output differs for older versions of the library
+#   We still run the code itself as a smoketest though
+HAS_INVALID_OUTPUT_FOR_FIXTURE = sys.version < "3.7"
 
+
+def test_selftest_no_ignore_update(ignore_file, capsys):
     os.chdir(str(PROJECT_DIR))
 
     stat_before = ignore_file.stat()
@@ -71,6 +74,10 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
         "fixtures/pylint-ignore.md",
     ]
     exitcode = main.main(args)
+
+    if HAS_INVALID_OUTPUT_FOR_FIXTURE:
+        return
+
     assert exitcode == 0
 
     stat_after = ignore_file.stat()
@@ -82,9 +89,6 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
 
 
 def test_selftest_ignore_update_noop(ignore_file, capsys):
-    if sys.version < "3.7":
-        return
-
     os.chdir(str(PROJECT_DIR))
 
     stat_before = ignore_file.stat()
@@ -97,6 +101,10 @@ def test_selftest_ignore_update_noop(ignore_file, capsys):
         "--update-ignorefile",
     ]
     exitcode = main.main(args)
+
+    if HAS_INVALID_OUTPUT_FOR_FIXTURE:
+        return
+
     assert exitcode == 0
 
     captured = capsys.readouterr()

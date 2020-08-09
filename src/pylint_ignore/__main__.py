@@ -22,6 +22,7 @@ import datetime as dt
 import tempfile
 import functools as ft
 import subprocess as sp
+import multiprocessing as mp
 
 import pathlib2 as pl
 import pylint.lint
@@ -370,6 +371,15 @@ class PylintIgnoreDecorator:
 
 
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
+    is_maybe_macos_that_uses_fork_method = (
+        hasattr(mp, 'get_start_method')
+        and mp.get_start_method(allow_none=True) is None
+        and sys.platform == 'darwin'
+    )
+    if is_maybe_macos_that_uses_fork_method:
+        # Workaround for https://bugs.python.org/issue33725
+        mp.set_start_method('fork')
+
     # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
     # pylint:disable=dangerous-default-value
     exit_code = 1
