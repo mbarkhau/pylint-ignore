@@ -19,16 +19,12 @@ else
     cd "$OLD_PWD";
 fi
 
-if [[ -n "$BOOTSTRAPIT_DEV_BRANCH" ]]; then
-    cd "$BOOTSTRAPIT_GIT_PATH";
-    git checkout "$BOOTSTRAPIT_DEV_BRANCH";
-    git pull --quiet;
-    cd "$OLD_PWD";
-fi
+cd "$BOOTSTRAPIT_GIT_PATH";
+git checkout "${BOOTSTRAPIT_DEV_BRANCH-master}";
+git pull --quiet;
+cd "$OLD_PWD";
 
-BOOTSTRAPIT_DEBUG=0
-
-if [[ $BOOTSTRAPIT_DEBUG == 0 ]]; then
+if [[ ${BOOTSTRAPIT_DEBUG-0} == 0 ]]; then
     if [[ -f "$PROJECT_DIR/.git/config" ]]; then
         cd "$PROJECT_DIR";
         if [[ $( git diff -s --exit-code || echo "$?" ) -gt 0 ]]; then
