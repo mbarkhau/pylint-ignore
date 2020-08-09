@@ -39,10 +39,10 @@ if [[ $BOOTSTRAPIT_DEBUG == 0 ]]; then
         cd "$OLD_PWD";
     fi
 
-    md5sum=$(which md5sum || which md5)
+    md5cmd=$(command -v md5sum || command -v md5)
 
-    old_md5=$( cat "$PROJECT_DIR/scripts/bootstrapit_update.sh" | $md5sum );
-    new_md5=$( cat "$BOOTSTRAPIT_GIT_PATH/scripts/bootstrapit_update.sh" | $md5sum );
+    old_md5=$( $md5cmd < "$PROJECT_DIR/scripts/bootstrapit_update.sh" );
+    new_md5=$( $md5cmd < "$BOOTSTRAPIT_GIT_PATH/scripts/bootstrapit_update.sh" );
 
     if [[ "$old_md5" != "$new_md5" ]]; then
         # Copy the updated file, run it and exit the current execution.
@@ -102,7 +102,7 @@ done
 
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ -z $AUTHOR_EMAIL && ! -z $AUTHOR_CONTACT ]]; then
+if [[ -z $AUTHOR_EMAIL && -n $AUTHOR_CONTACT ]]; then
     AUTHOR_EMAIL="${AUTHOR_CONTACT}"
 fi
 
@@ -389,6 +389,7 @@ mkdir -p "${PROJECT_DIR}/stubs/";
 mkdir -p "${PROJECT_DIR}/src/";
 mkdir -p "${PROJECT_DIR}/requirements/";
 mkdir -p "${PROJECT_DIR}/src/${MODULE_NAME}";
+mkdir -p "${PROJECT_DIR}/.github/workflows/";
 
 copy_template .gitignore;
 copy_template README.md;
@@ -414,6 +415,8 @@ copy_template requirements/integration.txt;
 copy_template requirements/vendor.txt;
 
 copy_template .gitlab-ci.yml;
+copy_template .github/workflows/ci.yml;
+
 copy_template scripts/update_conda_env_deps.sh;
 copy_template scripts/setup_conda_envs.sh;
 copy_template scripts/pre-push-hook.sh;
@@ -441,16 +444,16 @@ for src_file in $src_files; do
     fi
     offset=0
     if grep -z -q -E '^#![/a-z ]+?python' "$src_file"; then
-        let offset+=1;
+        (( offset+=1 ));
     fi
     if grep -q -E '^# .+?coding: [a-zA-Z0-9_\-]+' "$src_file"; then
-        let offset+=1;
+        (( offset+=1 ));
     fi
     rm -f "${src_file}.with_header";
     if [[ $offset -gt 0 ]]; then
         head -n $offset "${src_file}" > "${src_file}.with_header";
     fi
-    let offset+=1;
+    (( offset+=1 ));
     cat /tmp/.py_license.header >> "${src_file}.with_header";
     tail -n +$offset "${src_file}" >> "${src_file}.with_header";
     mv "${src_file}.with_header" "$src_file";
