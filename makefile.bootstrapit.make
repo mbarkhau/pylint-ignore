@@ -480,6 +480,7 @@ activate:
 	@echo 'export ENV=$${ENV-dev};'
 	@echo 'export PYTHONPATH="src/:vendor/:$$PYTHONPATH";'
 	@echo 'conda activate $(DEV_ENV_NAME);'
+
 	@echo 'function deactivate {'
 	@echo '		if [[ -z $${_env_before_activate} ]]; then'
 	@echo '				export ENV=$${_env_before_activate}; '
@@ -491,6 +492,8 @@ activate:
 	@echo '		else'
 	@echo '				unset PYTHONPATH;'
 	@echo '		fi'
+	@echo '		unset _env_before_activate;'
+	@echo '		unset _pythonpath_before_activate;'
 	@echo '		conda deactivate;'
 	@echo '};'
 
