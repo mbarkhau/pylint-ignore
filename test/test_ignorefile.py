@@ -367,11 +367,7 @@ def test_find_entry(tmp_ignorefile):
         assert ignorefile.find_entry(_catalog, key) is entry
 
         fuzzy_key = ignorefile.Key(
-            key.msgid,
-            key.path,
-            key.symbol,
-            key.msg_text,
-            "    " + key.source_line,
+            key.msgid, key.path, key.symbol, key.msg_text, "    " + key.source_line,
         )
 
         assert ignorefile.find_entry(_catalog, fuzzy_key) is entry
