@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # This file is part of the pylint-ignore project
-# https://gitlab.com/mbarkhau/pylint-ignore
+# https://github.com/mbarkhau/pylint-ignore
 #
 # Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT

@@ -1,5 +1,5 @@
 # This file is part of the pylint-ignore project
-# https://gitlab.com/mbarkhau/pylint-ignore
+# https://github.com/mbarkhau/pylint-ignore
 #
 # Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
@@ -74,7 +74,7 @@ setuptools.setup(
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
-    url="https://gitlab.com/mbarkhau/pylint-ignore",
+    url="https://github.com/mbarkhau/pylint-ignore",
     version="2020.1014",
     keywords="pylint ignore noise flake8 pep8 linter",
     description="Start with silence, not with noise. But do start!",

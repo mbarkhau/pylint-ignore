@@ -1,6 +1,8 @@
 <div align="center">
 <p align="center">
-  <img alt="logo" src="https://gitlab.com/mbarkhau/pylint-ignore/-/raw/master/logo_256.png">
+  <a href="https://github.com/mbarkhau/pylint-ignore">
+    <img alt="logo" src="https://raw.githubusercontent.com/mbarkhau/pylint-ignore/master/logo_256.png">
+  </a>
 </p>
 </div>
 
@@ -147,7 +149,7 @@ Caveat: If you change some code for which there is an entry in the `pylint-ignor
 
 ### The `pylint-ignore.md`  file
 
-You can view an example file here: [fixtures/pylint-ignore.md](https://gitlab.com/mbarkhau/pylint-ignore/-/blob/master/fixtures/pylint-ignore.md). You can consider this file as a backlog of possible issues. The entries are sorted first by category, i.e. errors and warnings first then by frequency. You can change the path/filename using the `--ignorefile` parameter: `pylint-ignore --ignorefile=etc/pylint-backlog.md`
+You can view an example file here: [fixtures/pylint-ignore.md](https://github.com/mbarkhau/pylint-ignore/blob/master/fixtures/pylint-ignore.md). You can consider this file as a backlog of possible issues. The entries are sorted first by category, i.e. errors and warnings first then by frequency. You can change the path/filename using the `--ignorefile` parameter: `pylint-ignore --ignorefile=etc/pylint-backlog.md`
 
 The `pylint-ignore.md` file uses a bespoke format but it is valid markdown. This choice is primarily so that you can read it and review it more easily on platforms such as github/gitlab/bitbucket. You don't have to edit the file and it is not a format that any other program has to parse, so I think this is a reasonable choice.
 
@@ -284,7 +286,7 @@ Obviously, this is abbreviated, so I encourage you to read his article if select
 Another automated approach is to use [pylint-silent](https://pypi.org/project/pylint-silent/). Be sure to use version control if you consider this approach.
 
 
-[repo_ref]: https://gitlab.com/mbarkhau/pylint-ignore
+[repo_ref]: https://github.com/mbarkhau/pylint-ignore
 
 [github_build_img]: https://github.com/mbarkhau/pylint-ignore/workflows/CI/badge.svg
 [github_build_ref]: https://github.com/mbarkhau/pylint-ignore/actions?query=workflow%3ACI
@@ -296,7 +298,7 @@ Another automated approach is to use [pylint-silent](https://pypi.org/project/py
 [codecov_ref]: https://mbarkhau.gitlab.io/pylint-ignore/cov
 
 [license_img]: https://img.shields.io/badge/License-MIT-blue.svg
-[license_ref]: https://gitlab.com/mbarkhau/pylint-ignore/blob/master/LICENSE
+[license_ref]: https://github.com/mbarkhau/pylint-ignore/blob/master/LICENSE
 
 [mypy_img]: https://img.shields.io/badge/mypy-checked-green.svg
 [mypy_ref]: https://mbarkhau.gitlab.io/pylint-ignore/mypycov
