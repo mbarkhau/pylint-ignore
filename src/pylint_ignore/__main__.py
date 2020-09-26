@@ -382,6 +382,11 @@ class PylintIgnoreDecorator:
         MessagesHandlerMixIn.add_message        = self._add_message_wrapper()
 
     def monkey_unpatch_pylint(self) -> None:
+        if MessagesHandlerMixIn is None:
+            # NOTE (mb 2020-09-26): This appears to happen when pylint is called
+            #   with a non python module and with jobs>1
+            return
+
         MessagesHandlerMixIn.is_message_enabled = self._pylint_is_message_enabled
         MessagesHandlerMixIn.add_message        = self._pylint_add_message
 
