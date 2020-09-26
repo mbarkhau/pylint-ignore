@@ -331,7 +331,7 @@ class PylintIgnoreDecorator:
                 assert not (msg_extra and srctxt)
 
                 _is_enabled = self.is_enabled_entry(
-                    msgid, linter.current_file, msg_def.symbol, msg_text, msg_extra, srctxt,
+                    msgid, linter.current_file, msg_def.symbol, msg_text, msg_extra, srctxt
                 )
                 if not _is_enabled:
                     return False
@@ -340,7 +340,10 @@ class PylintIgnoreDecorator:
 
         @ft.wraps(self._pylint_is_message_enabled)
         def is_message_enabled(
-            linter, msg_descr: str, line: MaybeLineNo = None, confidence: typ.Any = None,
+            linter,
+            msg_descr : str,
+            line      : MaybeLineNo = None,
+            confidence: typ.Any     = None,
         ) -> bool:
             try:
                 is_enabled = self._pylint_is_message_enabled(linter, msg_descr, line, confidence)
