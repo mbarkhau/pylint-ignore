@@ -154,7 +154,7 @@ class ObsoleteEntry(Exception):
 Catalog = typ.Dict[Key, Entry]
 
 
-FUZZY_MATCH_MAX_EDIT_DISTANCE_ABS = 4
+FUZZY_MATCH_MAX_EDIT_DISTANCE_ABS = 8
 FUZZY_MATCH_MAX_EDIT_DISTANCE_PCT = 20
 
 

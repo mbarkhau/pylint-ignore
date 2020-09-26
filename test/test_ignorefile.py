@@ -359,3 +359,19 @@ def test_dump(tmp_ignorefile):
         assert in_entry.srctxt.end_idx      == out_entry.srctxt.end_idx
         assert in_entry.srctxt.def_line_idx == out_entry.srctxt.def_line_idx
         assert in_entry.srctxt.def_line     == out_entry.srctxt.def_line
+
+
+def test_find_entry(tmp_ignorefile):
+    _catalog = ignorefile.load(tmp_ignorefile)
+    for key, entry in _catalog.items():
+        assert ignorefile.find_entry(_catalog, key) is entry
+
+        fuzzy_key = ignorefile.Key(
+            key.msgid,
+            key.path,
+            key.symbol,
+            key.msg_text,
+            "    " + key.source_line,
+        )
+
+        assert ignorefile.find_entry(_catalog, fuzzy_key) is entry
