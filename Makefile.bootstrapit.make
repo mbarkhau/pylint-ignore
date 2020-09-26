@@ -57,6 +57,7 @@ CONDA_ENV_BIN_PYTHON_PATHS := \
 empty :=
 literal_space := $(empty) $(empty)
 
+# BDIST_WHEEL_PYTHON_TAG := py2.py3
 BDIST_WHEEL_PYTHON_TAG := \
 	$(subst python,py,$(subst $(literal_space),.,$(subst .,,$(subst =,,$(SUPPORTED_PYTHON_VERSIONS)))))
 
@@ -182,7 +183,7 @@ help:
 				helpMessage = ""; \
 			} \
 		}' \
-		makefile.bootstrapit.make makefile
+		Makefile.bootstrapit.make Makefile
 
 	@if [[ ! -f $(DEV_ENV_PY) ]]; then \
 	echo "Missing python interpreter at $(DEV_ENV_PY) !"; \
@@ -236,7 +237,7 @@ helpverbose:
 				helpMessage = ""; \
 			} \
 		}' \
-		makefile.bootstrapit.make makefile
+		Makefile.bootstrapit.make Makefile
 
 
 ## -- Project Setup --
@@ -301,10 +302,8 @@ git_hooks:
 lint_isort:
 	@printf "isort ...\n"
 	@$(DEV_ENV)/bin/isort \
-		--check-only \
-		--force-single-line-imports \
-		--length-sort \
 		--recursive \
+		--check-only \
 		--line-width=$(MAX_LINE_LEN) \
 		--project $(MODULE_NAME) \
 		src/ test/
@@ -405,7 +404,8 @@ test:
 
 	rm -rf build/test_wheel;
 	mkdir -p build/test_wheel;
-	$(DEV_ENV_PY) setup.py bdist_wheel --dist-dir build/test_wheel;
+	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=$(BDIST_WHEEL_PYTHON_TAG) \
+		--dist-dir build/test_wheel;
 
 	IFS=' ' read -r -a env_py_paths <<< "$(CONDA_ENV_BIN_PYTHON_PATHS)"; \
 	for i in $${!env_py_paths[@]}; do \
@@ -424,8 +424,6 @@ test:
 .PHONY: fmt_isort
 fmt_isort:
 	@$(DEV_ENV)/bin/isort \
-		--force-single-line-imports \
-		--length-sort \
 		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
 		--project $(MODULE_NAME) \
