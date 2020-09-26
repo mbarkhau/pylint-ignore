@@ -30,6 +30,14 @@ import pylint.lint
 from . import ignorefile
 
 try:
+    import pretty_traceback
+
+    pretty_traceback.install(envvar='ENABLE_PRETTY_TRACEBACK')
+except ImportError:
+    pass  # no need to fail because of missing dev dependency
+
+
+try:
     from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
 except ImportError:
     # pylint<2.4>=2.0
@@ -64,18 +72,6 @@ def _pylint_msg_defs(linter, msgid: str) -> typ.List[MessageDef]:
     else:
         # compat for even older pylint versions
         return [linter.msgs_store.check_message_id(msgid)]
-
-
-# To enable pretty tracebacks:
-#   echo "export ENABLE_RICH_TB=1;" >> ~/.bashrc
-if os.environ.get('ENABLE_RICH_TB') == '1':
-    try:
-        import rich.traceback
-
-        rich.traceback.install()
-    except ImportError:
-        # don't fail just because of missing dev library
-        pass
 
 
 logger = logging.getLogger('pylint_ignore')
