@@ -48,7 +48,9 @@ What about the wall of messages for your existing code? Well, at least you can g
 
 ## How it Works
 
-The `pylint-ignore` command is a thin wrapper around the Pylint command. You can get started with a minimal configuration file such as this [`setup.cfg`](doc/setup.cfg) and running the following commands.
+The `pylint-ignore` command is a thin wrapper around the Pylint command. You can get started with a minimal configuration file such as this [`setup.cfg`][href_doc_setupcfg] and running the following commands.
+
+[href_doc_setupcfg]: https://github.com/mbarkhau/pylint-ignore/blob/master/doc/setup.cfg
 
 ```shell
 $ pip install pylint-ignore
