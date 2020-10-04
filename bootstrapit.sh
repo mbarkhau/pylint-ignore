@@ -18,7 +18,7 @@ AUTHOR_EMAIL="mbarkhau@gmail.com"
 KEYWORDS="pylint ignore noise flake8 pep8 linter"
 DESCRIPTION="Reduce Pylint noise. Selectively ignore messages."
 
-GIT_REPO_DOMAIN="gitlab.com"
+GIT_REPO_DOMAIN="github.com"
 GIT_REPO_NAMESPACE="mbarkhau"
 PACKAGE_NAME="pylint-ignore"
 MODULE_NAME="pylint_ignore"
@@ -70,7 +70,7 @@ LICENSE_ID="MIT"
 # PAGES_DOMAIN=bitbucket.io
 # PAGES_DOMAIN=gitlab-pages.yourdomain.com
 
-# DOCKER_REGISTRY_DOMAIN=registry.gitlab.com
+DOCKER_REGISTRY_DOMAIN=registry.gitlab.com
 # DOCKER_REGISTRY_DOMAIN=docker.yourdomain.com
 #
 # DOCKER_ROOT_IMAGE=registry.gitlab.com/mbarkhau/bootstrapit/root
