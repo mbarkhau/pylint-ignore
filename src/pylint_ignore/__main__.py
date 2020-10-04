@@ -391,8 +391,7 @@ class PylintIgnoreDecorator:
 
 
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
-    # pylint:disable=dangerous-default-value
-    # NOTE (mb 2020-07-18): We don't mutate args, mypy would fail if we did.
+    # pylint:disable=dangerous-default-value; We don't mutate args, mypy would fail if we did.
 
     is_fork_method_setable = (
         IS_FORK_METHOD_AVAILABLE
