@@ -396,7 +396,7 @@ test:
 		--cov-report term \
 		--html=reports/pytest/index.html \
 		--junitxml reports/pytest.xml \
-		-k "$${PYTEST_FILTER}" \
+		-k "$${PYTEST_FILTER-$${FLTR}}" \
 		$(shell cd src/ && ls -1 */__init__.py | awk '{ sub(/\/__init__.py/, "", $$1); print "--cov "$$1 }') \
 		test/ src/;
 
@@ -412,7 +412,10 @@ test:
 		env_py=$${env_py_paths[i]}; \
 		$${env_py} -m pip uninstall --yes $(PKG_NAME); \
 		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
-		PYTHONPATH="" ENV=$${ENV-dev} $${env_py} -m pytest test/; \
+		PYTHONPATH="" ENV=$${ENV-dev} \
+		$${env_py} -m pytest \
+		-k "$${PYTEST_FILTER-$${FLTR}}" \
+		test/; \
 	done;
 
 	@rm -rf ".pytest_cache";
@@ -522,7 +525,7 @@ devtest:
 		--capture=no \
 		--exitfirst \
 		--failed-first \
-		-k "$${PYTEST_FILTER}" \
+		-k "$${PYTEST_FILTER-$${FLTR}}" \
 		test/ src/;
 
 	@rm -rf "src/__pycache__";
