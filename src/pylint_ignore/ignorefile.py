@@ -281,7 +281,14 @@ def read_source_text(path: str, new_lineno: int, old_lineno: int) -> SourceText:
         maybe_def_idx -= 1
 
     return SourceText(
-        new_lineno, old_lineno, source_line, src_text, start_idx, end_idx, def_line_idx, def_line
+        new_lineno,
+        old_lineno,
+        source_line,
+        src_text,
+        start_idx,
+        end_idx,
+        def_line_idx,
+        def_line,
     )
 
 
@@ -454,10 +461,15 @@ assert MESSAGE_TYPE_PRIORITIES.index('F') < MESSAGE_TYPE_PRIORITIES.index('I')
 
 def _entry_priority(entry: Entry) -> typ.Any:
     msg_type_priority = MESSAGE_TYPE_PRIORITIES.index(entry.msgid[:1])
+    if entry.srctxt is None:
+        new_lineno = 0
+    else:
+        new_lineno = entry.srctxt.new_lineno
+
     return (
         msg_type_priority,
         entry.msgid,
-        entry.srctxt and entry.srctxt.new_lineno,
+        new_lineno,
         entry.msg_text,
     )
 
