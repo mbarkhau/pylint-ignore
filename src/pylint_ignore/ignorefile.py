@@ -454,10 +454,12 @@ assert MESSAGE_TYPE_PRIORITIES.index('F') < MESSAGE_TYPE_PRIORITIES.index('I')
 
 def _entry_priority(entry: Entry) -> typ.Any:
     msg_type_priority = MESSAGE_TYPE_PRIORITIES.index(entry.msgid[:1])
+    new_lineno = (entry.srctxt and entry.srctxt.new_lineno) or 0
+
     return (
         msg_type_priority,
         entry.msgid,
-        entry.srctxt and entry.srctxt.new_lineno,
+        new_lineno,
         entry.msg_text,
     )
 
