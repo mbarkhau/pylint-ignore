@@ -1,8 +1,17 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
+## 2020.1018
+
+- Fix [github #2][gh_i2]: Typerror
+
+[gh_i2]: https://github.com/mbarkhau/pylint-ignore/issues/2
+
+
 ## 2020.1014
 
-- Fix [#2](https://github.com/mbarkhau/pylint-ignore/-/issues/2): Bug related to invokation with invalid arguments (which caused the underlying pylint error to be hidden).
+- Fix [gitlab #2][gl_i2]: Bug related to invokation with invalid arguments (which caused the underlying pylint error to be hidden).
+
+[gl_i2]: https://gitlab.com/mbarkhau/pylint-ignore/-/issues/2
 
 
 ## 2020.1013
