@@ -2,7 +2,7 @@
 # This file is part of the pylint-ignore project
 # https://github.com/mbarkhau/pylint-ignore
 #
-# Copyright (c) 2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
+# Copyright (c) 2020-2020 Manuel Barkhau (mbarkhau@gmail.com) - MIT License
 # SPDX-License-Identifier: MIT
 """CLI for pylint-ignore.
 
