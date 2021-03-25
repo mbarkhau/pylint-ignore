@@ -70,8 +70,6 @@ BDIST_WHEEL_FILE_CMD = ls -1t dist/*.whl | head -n 1
 DEV_ENV := $(ENV_PREFIX)/$(DEV_ENV_NAME)
 DEV_ENV_PY := $(DEV_ENV)/bin/python
 
-RSA_KEY_PATH := $(HOME)/.ssh/$(PKG_NAME)_gitlab_runner_id_rsa
-
 DOCKER_BASE_IMAGE := registry.gitlab.com/mbarkhau/pylint-ignore/base
 
 GIT_HEAD_REV = $(shell git rev-parse --short HEAD)
@@ -604,19 +602,10 @@ dist_publish: bump_version dist_build dist_upload
 ##   4. You're using WSL but didn't do export DOCKER_HOST="tcp://localhost:2375"
 .PHONY: docker_build
 docker_build:
-	@if [[ -f "$(RSA_KEY_PATH)" ]]; then \
-		docker build \
-			--build-arg SSH_PRIVATE_RSA_KEY="$$(cat '$(RSA_KEY_PATH)')" \
-			--file docker_base.Dockerfile \
-			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
-			--tag $(DOCKER_BASE_IMAGE) \
-			.; \
-	else \
-		docker build \
-			--file docker_base.Dockerfile \
-			--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
-			--tag $(DOCKER_BASE_IMAGE) \
-			.; \
-	fi
+	docker build \
+		--file docker_base.Dockerfile \
+		--tag $(DOCKER_BASE_IMAGE):$(DOCKER_IMAGE_VERSION) \
+		--tag $(DOCKER_BASE_IMAGE) \
+		.;
 
 	docker push $(DOCKER_BASE_IMAGE)
