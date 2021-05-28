@@ -18,7 +18,7 @@ logger = logging.getLogger('pylint_ignore')
 
 IGNOREFILE_HEADER = """# Pylint-Ignore
 
-**WARNING: This file is programatically generated.**
+**WARNING: This file is programmatically generated.**
 
 This file is parsed by [`pylint-ignore`](https://pypi.org/project/pylint-ignore/)
 to determine which
