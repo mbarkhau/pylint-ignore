@@ -1,6 +1,17 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
-## 2020.1018
+## 2021.1019
+
+- Fix [github #5][gh_i5]: Missing fixture files in source distribution
+- Fix [github #4][gh_i4]: Bug related to trailing-whitespace
+
+[gh_i5]: https://github.com/mbarkhau/pylint-ignore/issues/5
+[gh_i4]: https://github.com/mbarkhau/pylint-ignore/issues/4
+
+Thank you @agraul (Alexander Graul) for finding these issues.
+
+
+## 2021.1018
 
 - Fix [github #2][gh_i2]: Typerror
 

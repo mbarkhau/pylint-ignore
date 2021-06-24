@@ -52,7 +52,6 @@ classifiers = [
 
 package_dir = {"": "src"}
 
-
 is_lib3to6_fix_required = any(arg.startswith("bdist") for arg in sys.argv)
 
 if is_lib3to6_fix_required:
