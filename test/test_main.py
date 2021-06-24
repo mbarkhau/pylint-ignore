@@ -78,12 +78,18 @@ def test_selftest_no_ignore_update(ignore_file, capsys):
     if HAS_INVALID_OUTPUT_FOR_FIXTURE:
         return
 
+    captured = capsys.readouterr()
+
+    if captured.out or captured.out:
+        print()
+        print("out:", repr(captured.out))
+        print("err:", repr(captured.err))
+
     assert exitcode == 0
 
     stat_after = ignore_file.stat()
     assert stat_before.st_mtime == stat_after.st_mtime
 
-    captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err == ""
 

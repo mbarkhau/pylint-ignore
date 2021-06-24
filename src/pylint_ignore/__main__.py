@@ -372,7 +372,7 @@ class PylintIgnoreDecorator:
 
     def monkey_patch_pylint(self) -> None:
         # NOTE (mb 2020-06-29): This is the easiest place to hook into that I've
-        #   found. Though I'm not quite sure why msg_descr that is a code would
+        #   found. Though I'm not quite sure why msg_descr is a code would
         #   imply that it's a candidate to generate output and otherwise not.
         self._pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
         self._pylint_add_message        = MessagesHandlerMixIn.add_message

@@ -1,6 +1,6 @@
 # Pylint-Ignore
 
-**WARNING: This file is programatically generated.**
+**WARNING: This file is programmatically generated.**
 
 This file is parsed by [`pylint-ignore`](https://pypi.org/project/pylint-ignore/)
 to determine which
@@ -28,17 +28,20 @@ The recommended approach to using `pylint-ignore` is:
 
 # W0511: fixme
 
-## File test/test_main.py - Line 118 - W0511 (fixme)
+## File test/test_main.py - Line 133 - W0511 (fixme)
 
 - `message: TODO (mb 2020-08-09): At least pretend to be on windows and check`
 - `author : Manuel Barkhau <mbarkhau@gmail.com>`
 - `date   : 2020-08-09T19:18:07`
 
 ```
-  116:
-  117:
-> 118: # TODO (mb 2020-08-09): At least pretend to be on windows and check
-  119: #   the not IS_FORK_METHOD_AVAILABLE codepaths
+  107: def test_selftest_ignore_update_noop(ignore_file, capsys):
+  ...
+  131:    assert stat_before.st_mtime == stat_after.st_mtime
+  132:
+> 133:
+  134: # TODO (mb 2020-08-09): At least pretend to be on windows and check
+  135: #   the not IS_FORK_METHOD_AVAILABLE codepaths
 ```
 
 

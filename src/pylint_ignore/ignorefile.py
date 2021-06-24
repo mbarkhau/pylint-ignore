@@ -374,12 +374,12 @@ def dumps_entry(entry: Entry) -> str:
 
         for offset, line in enumerate(srctxt.text.splitlines()):
             src_lineno = str(srctxt.start_idx + offset + 1)
-            # padded_line is to avoid trailing whitespace
-            padded_line = " " + line if line.strip() else ""
+            dumps_line = f"{src_lineno:>{padding_size}}: {line}"
             if lineno == src_lineno:
-                dumps_line = f"> {src_lineno:>{padding_size}}:{padded_line}"
+                dumps_line = "> " + dumps_line
             else:
-                dumps_line = f"  {src_lineno:>{padding_size}}:{padded_line}"
+                dumps_line = "  " + dumps_line
+
             src_lines.append(dumps_line)
 
         msg_text     = entry.msg_text

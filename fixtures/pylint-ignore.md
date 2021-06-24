@@ -26,7 +26,7 @@ The recommended approach to using `pylint-ignore` is:
  - [E0102: function-redefined (2x)](#e0102-function-redefined)
  - [E0602: undefined-variable (4x)](#e0602-undefined-variable)
  - [C0103: invalid-name (2x)](#c0103-invalid-name)
-
+ - [C0303: trailing-whitespace (1x)](#c0303-trailing-whitespace)
 
 # E0102: function-redefined
 
@@ -162,3 +162,16 @@ The recommended approach to using `pylint-ignore` is:
 ```
 
 
+# C0303: trailing-whitespace
+
+## File fixtures/fixture_3.py - Line 2 - C0303 (trailing-whitespace)
+
+- `message: Trailing whitespace`
+- `author : Manuel Barkhau <mbarkhau@gmail.com>`
+- `date   : 2021-06-24T16:20:28`
+
+```
+  1: def repro():
+> 2:    
+  3:    return
+```
