@@ -29,7 +29,7 @@ MODULE_NAME := $(shell echo $(subst -,_,$(PACKAGE_NAME)) | tr A-Z a-z)
 PLATFORM = $(shell uname -s)
 
 # miniconda is shared between projects
-CONDA_ROOT := $(shell if [[ -d /opt/conda/envs ]]; then echo "/opt/conda"; else echo "$$HOME/miniconda3"; fi;)
+CONDA_ROOT := $(shell if [[ -d /opt/conda/envs ]]; then echo "/opt/conda"; else echo "$${HOME}/miniconda3"; fi;)
 CONDA_BIN := $(CONDA_ROOT)/bin/conda
 
 ENV_PREFIX := $(CONDA_ROOT)/envs
@@ -156,14 +156,14 @@ build/deps.txt: build/envs.txt requirements/*.txt
 .PHONY: help
 help:
 	@awk '{ \
-			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
+			if ($$0 ~ /^.PHONY: [a-zA-Z\-_0-9]+$$/) { \
 				helpCommand = substr($$0, index($$0, ":") + 2); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
 						helpCommand, helpMessage; \
 					helpMessage = ""; \
 				} \
-			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.\/]+:/) { \
+			} else if ($$0 ~ /^[a-zA-Z\-_0-9.\/]+:/) { \
 				helpCommand = substr($$0, 0, index($$0, ":")); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
@@ -185,7 +185,7 @@ help:
 
 	@if [[ ! -f $(DEV_ENV_PY) ]]; then \
 	echo "Missing python interpreter at $(DEV_ENV_PY) !"; \
-	echo "You problably want to first setup the virtual environments:"; \
+	echo "You probably want to first setup the virtual environments:"; \
 	echo ""; \
 	echo "    make conda"; \
 	echo ""; \
@@ -194,7 +194,7 @@ help:
 
 	@if [[ ! -f $(CONDA_BIN) ]]; then \
 	echo "No conda installation found!"; \
-	echo "You problably want to first setup the virtual environments:"; \
+	echo "You probably want to first setup the virtual environments:"; \
 	echo ""; \
 	echo "    make conda"; \
 	echo ""; \
@@ -208,14 +208,14 @@ helpverbose:
 	@printf "Available make targets for \033[97m$(PKG_NAME)\033[0m:\n";
 
 	@awk '{ \
-			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
+			if ($$0 ~ /^.PHONY: [a-zA-Z\-_0-9]+$$/) { \
 				helpCommand = substr($$0, index($$0, ":") + 2); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
 						helpCommand, helpMessage; \
 					helpMessage = ""; \
 				} \
-			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.\/]+:/) { \
+			} else if ($$0 ~ /^[a-zA-Z\-_0-9.\/]+:/) { \
 				helpCommand = substr($$0, 0, index($$0, ":")); \
 				if (helpMessage) { \
 					printf "\033[36m%-20s\033[0m %s\n", \
