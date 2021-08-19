@@ -10,12 +10,13 @@ jobs:
 
   build:
     runs-on: '${{ matrix.os }}'
-    name: "Build ${{ matrix.target }}"
+    name: "Build ${{ matrix.os }}"
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
-          - os: windows-latest
+          - os: macos-latest
+          # - os: windows-latest
 
     steps:
       - uses: actions/checkout@v2
