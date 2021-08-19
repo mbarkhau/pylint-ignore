@@ -50,22 +50,11 @@ classifiers = [
 ]
 
 
-package_dir = {"": "src"}
-
-is_lib3to6_fix_required = any(arg.startswith("bdist") for arg in sys.argv)
-
-if is_lib3to6_fix_required:
-    try:
-        import lib3to6
-        package_dir = lib3to6.fix(package_dir, target_version="2.7")
-    except ImportError:
-        if sys.version_info < (3, 6):
-            raise
-        else:
-            sys.stderr.write((
-                "WARNING: Creating non-universal bdist, "
-                "this should only be used for development.\n"
-            ))
+try:
+    import lib3to6
+    cmdclass = {'build_py': lib3to6.build_py}
+except ImportError:
+    cmdclass = {}
 
 
 setuptools.setup(
@@ -80,7 +69,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages("src/"),
-    package_dir=package_dir,
+    package_dir={"": "src"},
     install_requires=install_requires,
     entry_points="""
         [console_scripts]

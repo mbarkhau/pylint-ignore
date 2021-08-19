@@ -20,9 +20,7 @@ flake8-comprehensions
 flake8-junit-report
 pylint
 mypy
-# pylint doesn't support isort>=5 for now
-#   https://github.com/PyCQA/pylint/issues/3722
-isort<5
+isort
 
 # http://doc.pytest.org/en/latest/py27-py34-deprecation.html
 # The pytest 4.6 series will be the last to support Python 2.7
@@ -44,7 +42,7 @@ bumpver
 # needed for mypy coverage report
 lxml
 
-lib3to6
+lib3to6>=202108.1048b0
 
 # yes, we depend on a previous version of ourselves
 #   (at least for integration purposes)

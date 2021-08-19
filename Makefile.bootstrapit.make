@@ -300,7 +300,6 @@ git_hooks:
 lint_isort:
 	@printf "isort ...\n"
 	@$(DEV_ENV)/bin/isort \
-		--recursive \
 		--check-only \
 		--line-width=$(MAX_LINE_LEN) \
 		--project $(MODULE_NAME) \
@@ -409,7 +408,8 @@ test:
 	for i in $${!env_py_paths[@]}; do \
 		env_py=$${env_py_paths[i]}; \
 		$${env_py} -m pip uninstall --yes $(PKG_NAME); \
-		$${env_py} -m pip install --upgrade build/test_wheel/*.whl; \
+		$${env_py} -m pip install --force-reinstall \
+			--upgrade build/test_wheel/*.whl; \
 		PYTHONPATH="" ENV=$${ENV-dev} \
 		$${env_py} -m pytest \
 		-k "$${PYTEST_FILTER-$${FLTR}}" \
@@ -425,7 +425,6 @@ test:
 .PHONY: fmt_isort
 fmt_isort:
 	@$(DEV_ENV)/bin/isort \
-		--recursive \
 		--line-width=$(MAX_LINE_LEN) \
 		--project $(MODULE_NAME) \
 		src/ test/;
