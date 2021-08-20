@@ -60,6 +60,7 @@ jobs:
           path: dist/pylint_ignore-ci-py2.py3-none-any.whl
 
   build-windows:
+    needs: build
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
