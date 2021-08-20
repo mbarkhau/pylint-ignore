@@ -1,5 +1,12 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
+## Next
+
+- Fix [github #6][gh_i6]: Issue with paths on windows.
+
+[gh_i6]: https://github.com/mbarkhau/pylint-ignore/issues/6
+
+
 ## 2021.1019
 
 - Fix [github #5][gh_i5]: Missing fixture files in source distribution
