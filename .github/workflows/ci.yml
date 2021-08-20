@@ -47,7 +47,7 @@ jobs:
         run: make test
 
       - name: make dist_build
-        run:
+        run: |
           rm -rf build/
           make dist_build
           mv dist/*.whl dist/pylint_ignore-ci-py2.py3-none-any.whl
