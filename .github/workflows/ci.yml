@@ -48,10 +48,12 @@ jobs:
 
       - name: make dist_build
         run:
+          rm -rf build/
           make dist_build
           mv dist/*.whl dist/pylint_ignore-ci-py2.py3-none-any.whl
 
       - name: upload dist
+        if: ${{ matrix.os }} == 'ubuntu-latest'
         uses: actions/upload-artifact@v2
         with:
           name: pylint_ignore-ci-py2.py3-none-any.whl
@@ -60,6 +62,12 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
 
       - uses: actions/download-artifact@v2
         with:
