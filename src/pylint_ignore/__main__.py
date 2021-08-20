@@ -269,7 +269,7 @@ class PylintIgnoreDecorator:
         """
 
         pwd      = pl.Path(".").absolute()
-        rel_path = str(pl.Path(path).absolute().relative_to(pwd).as_posix())
+        rel_path = str(pl.Path(path).absolute().relative_to(pwd))
         if srctxt:
             source_line = srctxt.source_line
         else:
