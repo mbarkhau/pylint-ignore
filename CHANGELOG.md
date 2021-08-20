@@ -1,6 +1,6 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
-## Next
+## 2021.1020
 
 - Fix [github #6][gh_i6]: Issue with paths on windows.
 
