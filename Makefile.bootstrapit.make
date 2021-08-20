@@ -375,6 +375,7 @@ test:
 	@rm -rf "src/__pycache__";
 	@rm -rf "test/__pycache__";
 	@rm -rf "reports/testcov/";
+	@rm -rf "build/lib/";
 	@rm -f "reports/pytest*";
 	@mkdir -p "reports/";
 
@@ -395,7 +396,8 @@ test:
 
 	# Next we install the package and run the test suite against it.
 
-	rm -rf build/test_wheel;
+	rm -rf "build/test_wheel";
+	rm -rf "build/lib/";
 	mkdir -p build/test_wheel;
 	$(DEV_ENV_PY) setup.py bdist_wheel --python-tag=py2.py3 \
 		--dist-dir build/test_wheel;
