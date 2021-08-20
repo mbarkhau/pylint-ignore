@@ -81,7 +81,6 @@ jobs:
         run: |
           python3 -c "import pylint_ignore as p; print(p.__version__)"
           python3 -c "import platform; print(platform.platform())"
-          python3 -m pylint_ignore --ignorefile=fixtures\\pylint-ignore.md fixtures/
 
       - name: basic_test
         run: |
