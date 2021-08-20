@@ -43,7 +43,7 @@ bumpver
 # needed for mypy coverage report
 lxml
 
-lib3to6>=202108.1048b0
+lib3to6>=202108.1048b3
 
 # yes, we depend on a previous version of ourselves
 #   (at least for integration purposes)

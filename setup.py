@@ -52,9 +52,12 @@ classifiers = [
 
 try:
     import lib3to6
-    cmdclass = {'build_py': lib3to6.build_py}
+    distclass = lib3to6.Distribution
 except ImportError:
-    cmdclass = {}
+    distclass = setuptools.dist.Distribution
+
+
+# distclass = Distribution
 
 
 setuptools.setup(
@@ -68,14 +71,18 @@ setuptools.setup(
     description="Start with silence, not with noise. But do start!",
     long_description=long_description,
     long_description_content_type="text/markdown",
+
+    distclass=distclass,
     packages=setuptools.find_packages("src/"),
     package_dir={"": "src"},
     install_requires=install_requires,
-    entry_points="""
-        [console_scripts]
-        pylint-ignore=pylint_ignore.__main__:main
-    """,
     python_requires=">=2.7",
     zip_safe=True,
     classifiers=classifiers,
+
+    entry_points={
+        'console_scripts': [
+            "pylint-ignore = pylint_ignore.__main__:main"
+        ],
+    }
 )

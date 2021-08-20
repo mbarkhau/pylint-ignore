@@ -3,6 +3,7 @@ FROM registry.gitlab.com/mbarkhau/pylint-ignore/base
 ADD src/ src/
 ADD stubs/ stubs/
 ADD test/ test/
+ADD fixtures/ fixtures/
 ADD requirements/ requirements/
 ADD setup.cfg setup.cfg
 ADD setup.py setup.py
