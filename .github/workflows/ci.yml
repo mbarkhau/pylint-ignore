@@ -77,5 +77,12 @@ jobs:
       - name: install
         run: python3 -m pip install pylint_ignore-ci-py2.py3-none-any.whl
 
-      - name: debug
-        run: python3 -c "import pylint_ignore as p; print(p.__version__)"
+      - name: info
+        run: |
+          python3 -c "import pylint_ignore as p; print(p.__version__)"
+          python3 -c "import platform; print(platform.platform())"
+          python3 -m pylint_ignore --ignorefile=fixtures\\pylint-ignore.md fixtures/
+
+      - name: basic_test
+        run: |
+          python3 -m pylint_ignore --rcfile=setup.cfg --ignorefile=fixtures\pylint-ignore.md fixtures\
