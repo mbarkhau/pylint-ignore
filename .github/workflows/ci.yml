@@ -73,3 +73,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: pylint_ignore-ci-py2.py3-none-any.whl
+
+      - name: install
+        run: python3 -m pip install pylint_ignore-ci-py2.py3-none-any.whl
+
+      - name: debug
+        run: python3 -c "import pylint_ignore as p; print(p.__version__)"
