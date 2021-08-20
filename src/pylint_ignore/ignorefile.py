@@ -240,7 +240,12 @@ def find_source_text_lineno(path: str, old_source_line: str, old_lineno: int) ->
     #       again. The git diff should make very obvious what happened.
 
     for offset in range(100):
-        for line_idx in {old_line_idx - offset, old_line_idx + offset}:
+        if offset:
+            line_indexes = [old_line_idx - offset, old_line_idx + offset]
+        else:
+            line_indexes = [old_line_idx]
+
+        for line_idx in line_indexes:
             is_matching_line = (
                 0 <= line_idx < len(lines) and lines[line_idx].rstrip() == old_source_line.rstrip()
             )
