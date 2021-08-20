@@ -6,6 +6,8 @@
 
 [gh_i6]: https://github.com/mbarkhau/pylint-ignore/issues/6
 
+Thank you davidsheldon
+
 
 ## 2021.1019
 
