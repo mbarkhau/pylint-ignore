@@ -28,6 +28,7 @@ unit:
   stage: test
   image: registry.gitlab.com/mbarkhau/pylint-ignore/base
   script:
+    - mkdir -p /root/.cache/pylint
     - make test
   coverage: '/^(TOTAL|src).*?(\d+\%)$/'
   artifacts:
