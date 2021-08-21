@@ -47,5 +47,5 @@ lib3to6>=202108.1048b3
 
 # yes, we depend on a previous version of ourselves
 #   (at least for integration purposes)
-pylint-ignore>=2020.1003
+pylint-ignore>=2020.1020
 
