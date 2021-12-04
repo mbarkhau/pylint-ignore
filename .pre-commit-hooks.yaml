@@ -1,5 +1,5 @@
 - id: pylint-ignore
-  name: pylint
+  name: pylint-ignore
   entry: pylint-ignore
   language: python
   types: [python]
