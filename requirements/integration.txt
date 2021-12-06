@@ -18,7 +18,7 @@ flake8-docstrings
 flake8-builtins
 flake8-comprehensions
 flake8-junit-report
-pylint
+pylint<2.12
 mypy
 isort
 
