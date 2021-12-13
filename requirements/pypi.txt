@@ -11,6 +11,6 @@ typing;python_version<"3.5"
 astroid<=2.1.0;python_version<"3.5"
 astroid>2.1.0;python_version>="3.5"
 pylint<=2.4;python_version<"3.5"
-pylint>2.4;python_version>="3.5"
+pylint>2.4,<2.12;python_version>="3.5"
 pathlib2
 pylev
