@@ -1,5 +1,12 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
+## 2021.1021
+
+- Fix [github #11][gh_i11]: MessagesHandlerMixIn has been removed in pylint 2.12
+
+[gh_i11]: https://github.com/mbarkhau/pylint-ignore/issues/11
+
+
 ## 2021.1020
 
 - Fix [github #6][gh_i6]: Issue with paths on windows.
