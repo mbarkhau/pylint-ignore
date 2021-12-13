@@ -1,5 +1,14 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
+## 2021.1022
+
+- Breaking: Add support for pylint 2.12.
+
+  Due to internal API changes in pylint, older versions of pylint
+  are no longer supported. If you need to use an older version of
+  pylint, you will have to pin `pylint-ignore==2021.1021`.
+
+
 ## 2021.1021
 
 - Fix [github #11][gh_i11]: MessagesHandlerMixIn has been removed in pylint 2.12
