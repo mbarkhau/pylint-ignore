@@ -157,7 +157,6 @@ To include `pylint-ignore` as a pre-commit hook using the provided plugin, add t
     rev: 2021.1020
     hooks:
       - id: pylint-ignore
-      - id: pylint-ignore-update
 ```
 
 If you find that `pylint` will only function correctly when run in the local Python environment (as described in [Pre-commit integration](https://pylint.pycqa.org/en/latest/user_guide/pre-commit-integration.html)) then the following local hook entry can instead be used for `pylint-ignore`:
@@ -174,21 +173,6 @@ If you find that `pylint` will only function correctly when run in the local Pyt
 ```
 
 The `args: [...]` property can be added to the entries as required.
-
-Due to the sensitivity of `pylint` to the environment in which it is run, it is likely that _additional_ rule violations will be reported when `pylint-ignore` is run from the pre-commit hook compared to running `pylint-ignore` on the command line. To resolve this situation, the `pylint-ignore.md` file must be updated from the pre-commit hook. A `pylint-ignore-update` hook for this purpose is provided by the plugin and can be run as required using the command below. The updated `pylint-ignore.md` file can then be added to the repository and `pylint-ignore` will pass the pre-commit hook check:
-
-```shell
-$ pre-commit run --hook-stage manual pylint-ignore-update --all-files
-update pylint-ignore file................................................Failed
-- hook id: pylint-ignore-update
-- files were modified by this hook
-
-$ git add pylint-ignore.md
-$ pre-commit run pylint-ignore --all-files
-pylint...................................................................Passed
-```
-
-**Note:** when `pylint-ignore` is executed in a continuous integration (CI) script, variances execution environment can potentially cause `pylint` to report violations which are not present in `pylint-ignore.md` and cause the job to fail. It may not be feasible to update `pylint-ignore.md` from the CI environment to ignore the specific rule violations, in which case it may be necessary to disable checking of those rules to allow the job to succeed. 
 
 
 ### Configuration

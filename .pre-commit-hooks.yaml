@@ -4,12 +4,3 @@
   language: python
   types: [python]
   require_serial: true
-
-- id: pylint-ignore-update
-  name: update pylint-ignore file
-  entry: pylint-ignore
-  args: ["--update-ignorefile"]
-  stages: [manual]
-  language: python
-  types: [python]
-  require_serial: true
