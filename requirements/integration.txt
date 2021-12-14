@@ -27,6 +27,7 @@ readme_renderer[md]
 twine
 
 md-toc
+cmarkgfm==0.7
 straitjacket>=v202008.1016
 bumpver
 
@@ -36,4 +37,3 @@ lxml
 # yes, we depend on a previous version of ourselves
 #   (at least for integration purposes)
 pylint-ignore>=2020.1021
-
