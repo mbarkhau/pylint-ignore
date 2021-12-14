@@ -162,17 +162,33 @@ To include `pylint-ignore` as a pre-commit hook using the provided plugin, add t
 If you find that `pylint` will only function correctly when run in the local Python environment (as described in [Pre-commit integration](https://pylint.pycqa.org/en/latest/user_guide/pre-commit-integration.html)) then the following local hook entry can instead be used for `pylint-ignore`:
 
 ```yaml
+repos:
   - repo: local
     hooks:
       - id: pylint-ignore
-        name: pylint
+        name: pylint-ignore
         entry: pylint-ignore
         language: system
         types: [python]
         require_serial: true
+        # args: [
+        #   "--rcfile",
+        #   "setup.cfg",
+        #   "src/",
+        #   "test/",
+        #   "--ignore-paths",
+        #   "scripts/,fixtures/,setup.py",
+        # ]
 ```
 
 The `args: [...]` property can be added to the entries as required.
+
+To test you can use pre-commit run:
+
+```
+$ pre-commit run pylint-ignore --all-files
+
+```
 
 
 ### Configuration
