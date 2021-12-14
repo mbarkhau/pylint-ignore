@@ -130,6 +130,8 @@ def get_author_name() -> str:
     return getpass.getuser()
 
 
+SENTINEL = object()
+
 IS_FORK_METHOD_AVAILABLE = sys.platform != 'win32'
 
 
@@ -300,8 +302,8 @@ class PylintIgnoreDecorator:
             args          : typ.Union[typ.Tuple[typ.Any], str, bytes, None] = None,
             confidence    : typ.Optional[str] = None,
             col_offset    : typ.Optional[int] = None,
-            end_lineno    : typ.Optional[int] = None,
-            end_col_offset: typ.Optional[int] = None,
+            end_lineno    : typ.Optional[int] = SENTINEL,
+            end_col_offset: typ.Optional[int] = SENTINEL,
         ) -> None:
             self._last_added_msgid = msgid
             del self._cur_msg_args[:]
@@ -311,17 +313,28 @@ class PylintIgnoreDecorator:
             elif isinstance(args, (bytes, str)):
                 self._cur_msg_args.append(args)
 
-            self._pylint_add_message(
-                linter,
-                msgid,
-                line,
-                node,
-                args,
-                confidence,
-                col_offset,
-                end_lineno,
-                end_col_offset,
-            )
+            if end_lineno is SENTINEL and end_col_offset is SENTINEL:
+                self._pylint_add_message(
+                    linter,
+                    msgid,
+                    line,
+                    node,
+                    args,
+                    confidence,
+                    col_offset,
+                )
+            else:
+                self._pylint_add_message(
+                    linter,
+                    msgid,
+                    line,
+                    node,
+                    args,
+                    confidence,
+                    col_offset,
+                    end_lineno,
+                    end_col_offset,
+                )
 
         return add_message
 
