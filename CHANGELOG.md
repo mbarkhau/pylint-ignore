@@ -1,7 +1,8 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
-## 2021.1022
+## 2021.1023
 
+- Add support for pylint 2.12
 - Breaking: Drop support for `Python<3.7`
 - Breaking: Drop support for `pylint<2.4`
 
