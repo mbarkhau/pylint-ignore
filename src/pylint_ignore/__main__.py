@@ -130,7 +130,7 @@ def get_author_name() -> str:
     return getpass.getuser()
 
 
-SENTINEL = object()
+SENTINEL: object = object()
 
 IS_FORK_METHOD_AVAILABLE = sys.platform != 'win32'
 
@@ -302,8 +302,8 @@ class PylintIgnoreDecorator:
             args          : typ.Union[typ.Tuple[typ.Any], str, bytes, None] = None,
             confidence    : typ.Optional[str] = None,
             col_offset    : typ.Optional[int] = None,
-            end_lineno    : typ.Optional[int] = SENTINEL,
-            end_col_offset: typ.Optional[int] = SENTINEL,
+            end_lineno    : typ.Union[int, None, object] = SENTINEL,
+            end_col_offset: typ.Union[int, None, object] = SENTINEL,
         ) -> None:
             self._last_added_msgid = msgid
             del self._cur_msg_args[:]
