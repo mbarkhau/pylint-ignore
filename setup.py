@@ -41,7 +41,6 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
@@ -50,33 +49,22 @@ classifiers = [
 ]
 
 
-try:
-    import lib3to6
-    distclass = lib3to6.Distribution
-except ImportError:
-    distclass = setuptools.dist.Distribution
-
-
-# distclass = Distribution
-
-
 setuptools.setup(
     name="pylint-ignore",
     license="MIT",
     author="Manuel Barkhau",
     author_email="mbarkhau@gmail.com",
     url="https://github.com/mbarkhau/pylint-ignore",
-    version="2021.1020",
+    version="2021.1023",
     keywords="pylint ignore noise flake8 pep8 linter",
     description="Start with silence, not with noise. But do start!",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    distclass=distclass,
     packages=setuptools.find_packages("src/"),
     package_dir={"": "src"},
     install_requires=install_requires,
-    python_requires=">=2.7",
+    python_requires=">=3.7",
     zip_safe=True,
     classifiers=classifiers,
 
