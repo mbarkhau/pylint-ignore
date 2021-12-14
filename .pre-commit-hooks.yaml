@@ -1,0 +1,6 @@
+- id: pylint-ignore
+  name: pylint-ignore
+  entry: pylint-ignore
+  language: python
+  types: [python]
+  require_serial: true

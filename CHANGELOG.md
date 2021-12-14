@@ -1,8 +1,11 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
-## 2021.1023
+## 2021.1024
 
-- Add support for pylint 2.12
+- Add/document support for [pre-commit](https://pre-commit.com/).
+  Thank you James Quilty for this contribution [github/issue/9][gh_i9]
+  [github/pull/10][gh_i10] :heart:.
+- Fix [github #11][gh_i11]: MessagesHandlerMixIn has been removed in pylint 2.12
 - Breaking: Drop support for `Python<3.7`
 - Breaking: Drop support for `pylint<2.4`
 
@@ -10,11 +13,8 @@
   are no longer supported. If you need to use an older version of
   pylint, you will have to pin `pylint-ignore==2021.1021`.
 
-
-## 2021.1021
-
-- Fix [github #11][gh_i11]: MessagesHandlerMixIn has been removed in pylint 2.12
-
+[gh_i9]: https://github.com/mbarkhau/pylint-ignore/issues/9
+[gh_i10]: https://github.com/mbarkhau/pylint-ignore/pull/10
 [gh_i11]: https://github.com/mbarkhau/pylint-ignore/issues/11
 
 

@@ -1,0 +1,17 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pylint-ignore
+        name: pylint-ignore
+        entry: pylint-ignore
+        language: system
+        types: [python]
+        require_serial: true
+        args: [
+          "--rcfile",
+          "setup.cfg",
+          "src/",
+          "test/",
+          "--ignore-paths",
+          "scripts/,fixtures/,setup.py",
+        ]
