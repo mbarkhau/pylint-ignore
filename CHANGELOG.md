@@ -3,7 +3,7 @@
 ## 2021.1022
 
 - Breaking: Drop support for `Python<3.7`
-- Breaking: Drop support for `pylint<2.12`
+- Breaking: Drop support for `pylint<2.4`
 
   Due to internal API changes in pylint, older versions of pylint
   are no longer supported. If you need to use an older version of
