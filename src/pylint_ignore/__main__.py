@@ -26,6 +26,7 @@ import multiprocessing as mp
 
 import pathlib2 as pl
 import pylint.lint
+from pylint.lint.pylinter import PyLinter
 
 from . import ignorefile
 
@@ -35,13 +36,6 @@ try:
     pretty_traceback.install(envvar='ENABLE_PRETTY_TRACEBACK')
 except ImportError:
     pass  # no need to fail because of missing dev dependency
-
-
-try:
-    from pylint.message.message_handler_mix_in import MessagesHandlerMixIn
-except ImportError:
-    # pylint<2.4>=2.0
-    from pylint.utils import MessagesHandlerMixIn
 
 
 class MessageDef(typ.NamedTuple):
@@ -58,7 +52,7 @@ class MessageDef(typ.NamedTuple):
 TESTDEBUG = False
 
 
-def _pylint_msg_defs(linter, msgid: str) -> typ.List[MessageDef]:
+def _pylint_msg_defs(linter: PyLinter, msgid: str) -> typ.List[MessageDef]:
     if hasattr(linter.msgs_store, 'get_message_definitions'):
         msg_defs = linter.msgs_store.get_message_definitions(msgid)
         if TESTDEBUG:
@@ -135,6 +129,8 @@ def get_author_name() -> str:
 
     return getpass.getuser()
 
+
+SENTINEL: object = object()
 
 IS_FORK_METHOD_AVAILABLE = sys.platform != 'win32'
 
@@ -299,13 +295,15 @@ class PylintIgnoreDecorator:
     def _add_message_wrapper(self) -> typ.Callable:
         @ft.wraps(self._pylint_add_message)
         def add_message(
-            linter,
-            msgid     : str,
-            line      : MaybeLineNo = None,
-            node      : typ.Any     = None,
-            args      : typ.Union[typ.Tuple[typ.Any], str, bytes, None] = None,
-            confidence: typ.Optional[str] = None,
-            col_offset: typ.Optional[int] = None,
+            linter        : PyLinter,
+            msgid         : str,
+            line          : MaybeLineNo = None,
+            node          : typ.Any     = None,
+            args          : typ.Union[typ.Tuple[typ.Any], str, bytes, None] = None,
+            confidence    : typ.Optional[str] = None,
+            col_offset    : typ.Optional[int] = None,
+            end_lineno    : typ.Union[int, None, object] = SENTINEL,
+            end_col_offset: typ.Union[int, None, object] = SENTINEL,
         ) -> None:
             self._last_added_msgid = msgid
             del self._cur_msg_args[:]
@@ -314,24 +312,46 @@ class PylintIgnoreDecorator:
                 self._cur_msg_args.extend(args)
             elif isinstance(args, (bytes, str)):
                 self._cur_msg_args.append(args)
-            if col_offset is None:
-                self._pylint_add_message(linter, msgid, line, node, args, confidence)
+
+            if end_lineno is SENTINEL and end_col_offset is SENTINEL:
+                self._pylint_add_message(
+                    linter,
+                    msgid,
+                    line,
+                    node,
+                    args,
+                    confidence,
+                    col_offset,
+                )
             else:
-                # compat for pylint 1.9.5
-                self._pylint_add_message(linter, msgid, line, node, args, confidence, col_offset)
+                self._pylint_add_message(
+                    linter,
+                    msgid,
+                    line,
+                    node,
+                    args,
+                    confidence,
+                    col_offset,
+                    end_lineno,
+                    end_col_offset,
+                )
 
         return add_message
 
     def _is_message_enabled_wrapper(self) -> typ.Callable:
-        def is_any_message_def_enabled(linter, msgid: str, line: MaybeLineNo) -> bool:
+        def is_any_message_def_enabled(
+            linter   : PyLinter,
+            msg_descr: str,
+            line     : typ.Optional[int] = None,
+        ) -> bool:
             srctxt = ignorefile.read_source_text(linter.current_file, line, line) if line else None
-            for msg_def in _pylint_msg_defs(linter, msgid):
+            for msg_def in _pylint_msg_defs(linter, msg_descr):
                 msg_text, msg_extra = self._fmt_msg(msg_def)
 
                 assert not (msg_extra and srctxt)
 
                 _is_enabled = self.is_enabled_entry(
-                    msgid, linter.current_file, msg_def.symbol, msg_text, msg_extra, srctxt
+                    msg_descr, linter.current_file, msg_def.symbol, msg_text, msg_extra, srctxt
                 )
                 if not _is_enabled:
                     return False
@@ -340,7 +360,7 @@ class PylintIgnoreDecorator:
 
         @ft.wraps(self._pylint_is_message_enabled)
         def is_message_enabled(
-            linter,
+            linter    : PyLinter,
             msg_descr : str,
             line      : MaybeLineNo = None,
             confidence: typ.Any     = None,
@@ -371,23 +391,20 @@ class PylintIgnoreDecorator:
         return is_message_enabled
 
     def monkey_patch_pylint(self) -> None:
-        # NOTE (mb 2020-06-29): This is the easiest place to hook into that I've
-        #   found. Though I'm not quite sure why msg_descr is a code would
-        #   imply that it's a candidate to generate output and otherwise not.
-        self._pylint_is_message_enabled = MessagesHandlerMixIn.is_message_enabled
-        self._pylint_add_message        = MessagesHandlerMixIn.add_message
+        self._pylint_is_message_enabled = PyLinter.is_message_enabled
+        self._pylint_add_message        = PyLinter.add_message
 
-        MessagesHandlerMixIn.is_message_enabled = self._is_message_enabled_wrapper()
-        MessagesHandlerMixIn.add_message        = self._add_message_wrapper()
+        PyLinter.is_message_enabled = self._is_message_enabled_wrapper()
+        PyLinter.add_message        = self._add_message_wrapper()
 
     def monkey_unpatch_pylint(self) -> None:
-        if MessagesHandlerMixIn is None:
+        if PyLinter is None:
             # NOTE (mb 2020-09-26): This appears to happen when pylint is called
             #   with a non python module and with jobs>1
             return
 
-        MessagesHandlerMixIn.is_message_enabled = self._pylint_is_message_enabled
-        MessagesHandlerMixIn.add_message        = self._pylint_add_message
+        PyLinter.is_message_enabled = self._pylint_is_message_enabled
+        PyLinter.add_message        = self._pylint_add_message
 
 
 def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
