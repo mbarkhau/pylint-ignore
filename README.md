@@ -154,7 +154,7 @@ To include `pylint-ignore` as a pre-commit hook using the provided plugin, add t
 
 ```yaml
   - repo: https://github.com/mbarkhau/pylint-ignore
-    rev: 2021.1020
+    rev: "2021.1024"
     hooks:
       - id: pylint-ignore
 ```
