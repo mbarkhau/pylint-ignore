@@ -1,5 +1,16 @@
 # Changelog for https://github.com/mbarkhau/pylint-ignore
 
+## 2022.1025
+
+- Pin pylint<1.13
+
+Newer versions of pylint have different messages. Further work on
+pylint-ignore is discouraged in favor of work on integrating
+a "baseline" approach into pylint directly.
+
+https://github.com/mbarkhau/pylint-ignore/issues/13
+
+
 ## 2021.1024
 
 - Add/document support for [pre-commit](https://pre-commit.com/).
