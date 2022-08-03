@@ -9,9 +9,9 @@ import typing as typ
 import hashlib
 import logging
 import collections
+import pathlib as pl
 
 import pylev
-import pathlib2 as pl
 
 logger = logging.getLogger('pylint_ignore')
 

@@ -23,8 +23,8 @@ import tempfile
 import functools as ft
 import subprocess as sp
 import multiprocessing as mp
+import pathlib as pl
 
-import pathlib2 as pl
 import pylint.lint
 from pylint.lint.pylinter import PyLinter
 

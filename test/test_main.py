@@ -2,17 +2,12 @@
 # pylint:disable=redefined-outer-name ; pytest.fixture ignore_file
 # pylint:disable=protected-access ; ok for testing
 
-from __future__ import division
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os
 import sys
 import shutil
+import pathlib as pl
 
 import pytest
-import pathlib2 as pl
 
 import pylint_ignore.__main__ as main
 
