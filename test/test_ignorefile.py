@@ -5,8 +5,8 @@
 import os
 import time
 import shutil
-import textwrap
 import pathlib as pl
+import textwrap
 
 import pytest
 

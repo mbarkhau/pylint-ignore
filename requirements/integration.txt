@@ -37,4 +37,4 @@ lxml
 # yes, we depend on a previous version of ourselves
 #   (at least for integration purposes)
 pylint-ignore>=2020.1021
-pylint<2.12
+pylint==2.12.1
