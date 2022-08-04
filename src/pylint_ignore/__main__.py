@@ -18,12 +18,12 @@ import typing as typ
 import getpass
 import hashlib
 import logging
+import pathlib as pl
 import datetime as dt
 import tempfile
 import functools as ft
 import subprocess as sp
 import multiprocessing as mp
-import pathlib as pl
 
 import pylint.lint
 from pylint.lint.pylinter import PyLinter

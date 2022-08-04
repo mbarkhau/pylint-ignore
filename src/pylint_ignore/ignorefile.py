@@ -8,8 +8,8 @@ import shutil
 import typing as typ
 import hashlib
 import logging
-import collections
 import pathlib as pl
+import collections
 
 import pylev
 
