@@ -2,7 +2,7 @@
 
 ## 2022.1025
 
-- Pin pylint<1.13
+- Pin `pylint<2.13`
 
 Newer versions of pylint have different messages. Further work on
 pylint-ignore is discouraged in favor of work on integrating
