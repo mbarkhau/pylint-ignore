@@ -70,7 +70,7 @@ def _pylint_msg_defs(linter: PyLinter, msgid: str) -> typ.List[MessageDef]:
 
 logger = logging.getLogger('pylint_ignore')
 
-ExitCode = int
+ExitCode = typ.Union[str, int, None]
 
 USAGE_ERROR = 32
 
@@ -424,8 +424,9 @@ def main(args: typ.Sequence[str] = sys.argv[1:]) -> ExitCode:
         #   https://bugs.python.org/issue33725
         mp.set_start_method('fork')
 
-    exit_code = 1
-    dec       = PylintIgnoreDecorator(args)
+    exit_code: ExitCode = 1
+
+    dec = PylintIgnoreDecorator(args)
     try:
         dec.monkey_patch_pylint()
         try:
